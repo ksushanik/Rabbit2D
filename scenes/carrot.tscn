@@ -1,0 +1,12 @@
+[gd_scene load_steps=3 format=3 uid="uid://icmp47av7ddm"]
+
+[ext_resource type="Script" path="res://scripts/Carrot.gd" id="1_3twru"]
+[ext_resource type="Texture2D" uid="uid://c2w1yf71dam8w" path="res://assets/tilemap/rabbit_2d.png" id="1_cgh1d"]
+
+[node name="Carrot" type="Node2D"]
+script = ExtResource("1_3twru")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("1_cgh1d")
+region_enabled = true
+region_rect = Rect2(0, 128, 64, 64)

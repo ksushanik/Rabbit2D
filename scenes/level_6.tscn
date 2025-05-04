@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://01thn3voy28s"]
+
+[ext_resource type="Script" path="res://scripts/Level.gd" id="1_o38yc"]
+[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://world.tres" id="2_1fxq3"]
+[ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="3_ht5th"]
+[ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="4_imvhl"]
+
+[node name="Level6" type="Node2D" node_paths=PackedStringArray("ground_layer", "carrots_container", "rabbit")]
+script = ExtResource("1_o38yc")
+ground_layer = NodePath("GroundLayer")
+carrots_container = NodePath("CarrotsContainer")
+rabbit = NodePath("Rabbit")
+
+[node name="GroundLayer" type="TileMap" parent="."]
+tile_set = ExtResource("2_1fxq3")
+format = 2
+layer_0/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 0, 131072, 1, 0, 196608, 1, 0, 262144, 1, 0, 327680, 1, 0, 393216, 1, 0, 458752, 1, 0, 1, 1, 0, 2, 1, 0, 3, 1, 0, 4, 1, 0, 5, 1, 0, 6, 1, 0, 65540, 131073, 1, 65541, 131073, 1, 65542, 131073, 1, 131075, 196609, 2, 131076, 131073, 2, 131077, 131073, 1, 131078, 131073, 2, 196611, 131073, 2, 196612, 196609, 2, 196613, 131073, 1, 196614, 196609, 2, 262147, 196609, 2, 262148, 131073, 2, 262149, 196609, 2, 262150, 131073, 2, 327684, 196609, 2, 327685, 131073, 2, 327686, 196609, 2, 7, 1, 0, 131079, 1, 0, 262151, 1, 0, 327687, 1, 0, 196615, 1, 0, 65543, 1, 0, 458759, 1, 0, 393223, 1, 0, 65538, 1, 3, 131074, 131073, 2, 65539, 131073, 1, 131073, 131073, 1, 196609, 131073, 1, 196610, 196609, 2, 262145, 131073, 1, 327681, 131073, 1, 262146, 131073, 2, 327682, 131073, 1, 327683, 131073, 2, 393217, 131073, 1, 458753, 1, 0, 393218, 131073, 1, 458754, 1, 0, 393219, 196609, 2, 458755, 1, 0, 393220, 131073, 2, 458756, 1, 0, 393221, 131073, 1, 458757, 1, 0, 393222, 131073, 2, 458758, 1, 0)
+
+[node name="CarrotsContainer" type="Node2D" parent="."]
+
+[node name="Carrot" parent="CarrotsContainer" instance=ExtResource("3_ht5th")]
+position = Vector2(416, 289)
+
+[node name="Carrot2" parent="CarrotsContainer" instance=ExtResource("3_ht5th")]
+position = Vector2(416, 352)
+
+[node name="Rabbit" parent="." instance=ExtResource("4_imvhl")]
+position = Vector2(225, 352)

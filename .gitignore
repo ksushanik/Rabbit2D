@@ -1,0 +1,31 @@
+# Godot-specific ignores
+.godot/
+
+# Mono-specific ignores
+.mono/
+
+# Asset library ignores
+.config/godot/
+
+# Files imported by Godot (better handled by export templates)
+*.import
+
+# Build results
+export_presets.cfg
+
+# Optional user data
+export_credentials.cfg
+
+# VS Code specific ignores (if used)
+.vscode/
+
+# Rider specific ignores (if used)
+.idea/
+*.sln
+*.csproj
+
+# Heap Snapshot files (memory debugging)
+*.heapsnapshot
+
+# History for UI/tool scripts in the editor
+.history/

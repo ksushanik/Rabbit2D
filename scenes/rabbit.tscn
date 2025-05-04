@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3 uid="uid://dcxy5gwg1qjoh"]
+
+[ext_resource type="Script" path="res://scripts/Rabbit.gd" id="1_y8ain"]
+[ext_resource type="Texture2D" uid="uid://c2w1yf71dam8w" path="res://assets/tilemap/rabbit_2d.png" id="2_vqrn2"]
+
+[node name="Rabbit" type="Node2D"]
+script = ExtResource("1_y8ain")
+
+[node name="Sprite2D" type="Sprite2D" parent="."]
+texture = ExtResource("2_vqrn2")
+region_enabled = true
+region_rect = Rect2(0, 64, 64, 64)
+region_filter_clip_enabled = true

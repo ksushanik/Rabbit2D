@@ -1,0 +1,64 @@
+[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://c7tqre1fkf5pn"]
+
+[ext_resource type="Texture2D" uid="uid://c2w1yf71dam8w" path="res://assets/tilemap/rabbit_2d.png" id="1_xuymf"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hi05a"]
+texture = ExtResource("1_xuymf")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/physics_layer_0/polygon_0/points = PackedVector2Array(-32, -32, 32, -32, 32, 32, -32, 32)
+1:0/0 = 0
+2:0/0 = 0
+2:0/0/custom_data_1 = {
+"up": true
+}
+3:0/0 = 0
+3:0/0/custom_data_1 = {
+"up": true
+}
+4:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+1:1/0/custom_data_1 = {
+"left": true
+}
+2:1/0 = 0
+2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-32, -32, 32, -32, 32, 32, -32, 32)
+3:1/0 = 0
+4:1/0 = 0
+4:1/0/custom_data_1 = {
+"right": true
+}
+0:2/0 = 0
+0:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(32, -32, 32, 32, -32, 32, -32, -32)
+1:2/0 = 0
+1:2/0/custom_data_1 = {
+"left": true
+}
+2:2/0 = 0
+3:2/0 = 0
+4:2/0 = 0
+4:2/0/custom_data_1 = {
+"right": true
+}
+0:3/0 = 0
+0:3/0/custom_data_0 = "exit"
+1:3/0 = 0
+2:3/0 = 0
+2:3/0/custom_data_1 = {
+"down": true
+}
+3:3/0 = 0
+3:3/0/custom_data_1 = {
+"down": true
+}
+4:3/0 = 0
+
+[resource]
+tile_size = Vector2i(64, 64)
+physics_layer_0/collision_layer = 1
+custom_data_layer_0/name = "type"
+custom_data_layer_0/type = 4
+custom_data_layer_1/name = "blocks"
+custom_data_layer_1/type = 27
+sources/1 = SubResource("TileSetAtlasSource_hi05a")

@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3 uid="uid://2u2ve7f2pvvb"]
+
+[ext_resource type="Script" path="res://scripts/Level.gd" id="1_flmkp"]
+[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://world.tres" id="2_8jj6w"]
+[ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="3_0fjcx"]
+[ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="4_ed5bh"]
+
+[node name="Level4" type="Node2D" node_paths=PackedStringArray("ground_layer", "carrots_container", "rabbit")]
+script = ExtResource("1_flmkp")
+ground_layer = NodePath("GroundLayer")
+carrots_container = NodePath("CarrotsContainer")
+rabbit = NodePath("Rabbit")
+
+[node name="GroundLayer" type="TileMap" parent="."]
+tile_set = ExtResource("2_8jj6w")
+format = 2
+layer_0/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 0, 131072, 1, 0, 196608, 1, 0, 262144, 1, 0, 327680, 1, 0, 393216, 1, 0, 458752, 1, 0, 1, 1, 0, 2, 1, 0, 3, 1, 0, 4, 1, 0, 5, 1, 0, 6, 1, 0, 7, 1, 0, 65537, 131073, 2, 65538, 196609, 2, 65539, 131073, 2, 65540, 196609, 2, 65541, 131073, 2, 65542, 196609, 2, 131074, 131073, 2, 131075, 196609, 2, 131076, 131073, 2, 131077, 196609, 2, 131078, 131073, 2, 131079, 1, 0, 196609, 131073, 1, 196610, 196609, 2, 196611, 131073, 2, 196612, 131073, 1, 196613, 131073, 2, 196614, 196609, 2, 262146, 131073, 2, 262147, 196609, 2, 262148, 131073, 2, 262149, 196609, 2, 262150, 131073, 2, 262151, 1, 0, 327681, 131073, 2, 327682, 196609, 2, 327683, 1, 3, 327684, 196609, 2, 327685, 131073, 2, 327686, 131073, 1, 393218, 131073, 2, 393219, 196609, 2, 393220, 131073, 2, 393221, 196609, 2, 393222, 131073, 2, 393223, 1, 0, 458753, 1, 0, 458754, 1, 0, 458755, 1, 0, 458756, 1, 0, 458757, 1, 0, 458758, 1, 0, 458759, 1, 0, 327687, 1, 0, 196615, 1, 0, 65543, 1, 0, 393217, 196609, 2, 262145, 131073, 1, 131073, 131073, 1)
+
+[node name="CarrotsContainer" type="Node2D" parent="."]
+
+[node name="Carrot" parent="CarrotsContainer" instance=ExtResource("3_0fjcx")]
+position = Vector2(161, 224)
+
+[node name="Carrot2" parent="CarrotsContainer" instance=ExtResource("3_0fjcx")]
+position = Vector2(351, 288)
+
+[node name="Rabbit" parent="." instance=ExtResource("4_ed5bh")]
+position = Vector2(96, 351)
