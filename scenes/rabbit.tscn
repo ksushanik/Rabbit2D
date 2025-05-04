@@ -1,10 +1,11 @@
 [gd_scene load_steps=3 format=3 uid="uid://dcxy5gwg1qjoh"]
 
-[ext_resource type="Script" path="res://scripts/Rabbit.gd" id="1_y8ain"]
+[ext_resource type="Script" path="res://scripts/Rabbit.gd" id="1_d787j"]
 [ext_resource type="Texture2D" uid="uid://c2w1yf71dam8w" path="res://assets/tilemap/rabbit_2d.png" id="2_vqrn2"]
 
 [node name="Rabbit" type="Node2D"]
-script = ExtResource("1_y8ain")
+script = ExtResource("1_d787j")
+move_sound_path = "res://assets/Sounds/ochen-tihiy-zvuk.wav"
 
 [node name="Sprite2D" type="Sprite2D" parent="."]
 texture = ExtResource("2_vqrn2")

@@ -9,6 +9,8 @@ var level_paths: Array[String] = [
 	"res://scenes/level_5.tscn",
 	"res://scenes/level_6.tscn"
 ]
+# Ссылка на сцену экрана завершения игры
+var game_over_scene: PackedScene = load("res://scenes/UI/GameOverScreen.tscn")
 
 var current_level_index: int = -1
 
@@ -29,8 +31,13 @@ func load_level_by_index(index: int) -> void:
 	# Проверяем, есть ли еще уровни
 	if index >= level_paths.size():
 		print("--- GAME COMPLETED! All levels finished. ---")
-		# Здесь можно будет добавить переход на экран победы или в главное меню
-		get_tree().quit() # Пока просто выходим из игры
+		# Показываем экран завершения игры
+		if game_over_scene:
+			var game_over_instance = game_over_scene.instantiate()
+			get_tree().root.add_child(game_over_instance)
+		else:
+			printerr("GameManager: Сцена game_over_scene не установлена!")
+			get_tree().quit() # Выходим, если экрана победы нет
 		return
 
 	current_level_index = index
