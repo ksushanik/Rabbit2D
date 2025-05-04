@@ -32,7 +32,7 @@ var last_move_calculation_result: Dictionary = {} # <-- ДОБАВЛЕНО: Со
 
 
 # --- Инициализация уровня --- 
-func _ready():
+func _ready() -> void:
 	# 1. Проверка ссылок на узлы
 	if not ground_layer:
 		printerr("Level.gd: Узел GroundLayer не найден!")
@@ -46,13 +46,19 @@ func _ready():
 	
 	# --- ДОБАВЛЕНО: Инстанцирование и подключение HUD ---
 	if hud_scene:
-		var hud_instance = hud_scene.instantiate()
-		add_child(hud_instance)
-		# Подключаем сигнал этого уровня к функции обновления HUD
-		if hud_instance.has_method("update_carrot_count"):
-			carrots_updated.connect(hud_instance.update_carrot_count)
+		var hud_instance: CanvasLayer = hud_scene.instantiate() as CanvasLayer
+		if hud_instance:
+			add_child(hud_instance)
+			# Подключаем сигнал этого уровня к функции обновления HUD
+			if hud_instance.has_method("update_carrot_count"):
+				# Используем Callable для более надежного подключения
+				var callable_update = Callable(hud_instance, "update_carrot_count")
+				if not carrots_updated.is_connected(callable_update):
+					carrots_updated.connect(callable_update)
+			else:
+				printerr("Ошибка: Экземпляр HUD не имеет метода update_carrot_count!")
 		else:
-			printerr("Ошибка: Экземпляр HUD не имеет метода update_carrot_count!")
+			printerr("Ошибка: Не удалось инстанциировать HUD как CanvasLayer!")
 	else:
 		print("Предупреждение: Сцена HUD не установлена в Level.gd")
 	# --------------------------------------------------
@@ -72,8 +78,9 @@ func _ready():
 	
 	print("Стартовая позиция кролика (grid): ", rabbit_start_grid_pos)
 	# Подписываемся на сигнал окончания его движения
-	if not rabbit.is_connected("move_finished", Callable(self, "_on_rabbit_move_finished")):
-		rabbit.move_finished.connect(_on_rabbit_move_finished)
+	var callable_rabbit_finished = Callable(self, "_on_rabbit_move_finished")
+	if not rabbit.move_finished.is_connected(callable_rabbit_finished):
+		rabbit.move_finished.connect(callable_rabbit_finished)
 	else:
 		print("Сигнал rabbit.move_finished уже был подключен.")
 
@@ -97,8 +104,9 @@ func _ready():
 			carrot_node.set_grid_position(carrot_grid_pos)
 			active_carrots[carrot_grid_pos] = carrot_node
 			# Подписываемся на сигнал окончания движения морковки (если еще не подписаны)
-			if not carrot_node.is_connected("move_finished", Callable(self, "_on_carrot_move_finished")):
-				carrot_node.move_finished.connect(_on_carrot_move_finished)
+			var callable_carrot_finished = Callable(self, "_on_carrot_move_finished")
+			if not carrot_node.move_finished.is_connected(callable_carrot_finished):
+				carrot_node.move_finished.connect(callable_carrot_finished)
 			else:
 				# Если метод initialize или set_grid_position отсутствует
 				printerr("Ошибка инициализации узла '%s'. Проверьте скрипт и тип узла." % carrot_node.name)
@@ -112,7 +120,7 @@ func _ready():
 
 
 # --- Обработка ввода игрока --- 
-func _unhandled_input(event: InputEvent):
+func _unhandled_input(event: InputEvent) -> void:
 	# Принимаем ввод только если сейчас ход игрока и ничего не движется
 	if current_state != State.PLAYER_TURN:
 		return
@@ -129,10 +137,11 @@ func _unhandled_input(event: InputEvent):
 
 	if direction != Vector2i.ZERO:
 		start_rabbit_move(direction)
+		get_tree().root.set_input_as_handled() # Помечаем ввод как обработанный здесь
 
 
 # --- Логика хода --- 
-func start_rabbit_move(direction: Vector2i):
+func start_rabbit_move(direction: Vector2i) -> void:
 	if rabbit.is_moving: # Не позволяем двигаться, если кролик еще анимируется
 		return 
 		
@@ -162,7 +171,7 @@ func start_rabbit_move(direction: Vector2i):
 
 
 # Вызывается, когда анимация движения Кролика завершена (сигнал от Rabbit.gd)
-func _on_rabbit_move_finished():
+func _on_rabbit_move_finished() -> void:
 	# 1. Обновляем логическую позицию кролика 
 	var final_grid_pos = world_to_grid(rabbit.position)
 	if not is_instance_valid(rabbit):
@@ -200,8 +209,8 @@ func _on_rabbit_move_finished():
 
 
 # Обрабатывает логику запугивания морковок после хода кролика
-func _process_scared_carrots(rabbit_final_pos: Vector2i):
-	var scared_carrots_list: Array[Node] = []
+func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
+	var scared_carrots_list: Array[Carrot] = []
 	for offset in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
 		var check_pos = rabbit_final_pos + offset
 		var scared_carrot = get_carrot_at(check_pos)
@@ -238,7 +247,7 @@ func _process_scared_carrots(rabbit_final_pos: Vector2i):
 
 
 # Вызывается, когда анимация движения Морковки завершена (сигнал от Carrot.gd)
-func _on_carrot_move_finished():
+func _on_carrot_move_finished() -> void:
 	if current_state == State.PROCESSING_MOVE:
 		moving_carrots_count -= 1
 		print("Морковка завершила движение. Осталось движущихся: ", moving_carrots_count)
@@ -262,8 +271,9 @@ func grid_to_world(grid_pos: Vector2i) -> Vector2:
 
 # Получает данные тайла по координатам сетки
 func get_tile_data(grid_pos: Vector2i) -> TileData:
-	# Используем get_cell_tile_data для получения данных тайла на указанных координатах.
-	# Уровень 0 - стандартный для TileMap.
+	if not ground_layer:
+		printerr("get_tile_data вызван до готовности ground_layer!")
+		return null
 	return ground_layer.get_cell_tile_data(0, grid_pos)
 
 # Проверяет, блокируется ли движение из from_pos в to_pos частичной стеной.
@@ -322,12 +332,12 @@ func get_partial_wall_blocks(grid_pos: Vector2i) -> Dictionary:
 	return {} # Возвращаем пустой словарь, если данных нет или тайл не найден
 
 # Возвращает узел морковки в указанной клетке, если он есть
-func get_carrot_at(grid_pos: Vector2i) -> Node:
-	return active_carrots.get(grid_pos, null)
+func get_carrot_at(grid_pos: Vector2i) -> Carrot:
+	return active_carrots.get(grid_pos, null) as Carrot
 
 # Обновляет позицию морковки в словаре active_carrots.
 # Вызывается из Carrot.gd ПОСЛЕ завершения анимации движения.
-func update_carrot_position(carrot_node: Node, old_grid_pos: Vector2i, new_grid_pos: Vector2i):
+func update_carrot_position(carrot_node: Node, old_grid_pos: Vector2i, new_grid_pos: Vector2i) -> void:
 	# Удаляем морковку из старой позиции (если она там была)
 	if active_carrots.has(old_grid_pos) and active_carrots[old_grid_pos] == carrot_node:
 		active_carrots.erase(old_grid_pos)
@@ -411,9 +421,9 @@ func calculate_slide_destination(start_grid_pos: Vector2i, direction: Vector2i, 
 
 
 # Обработка поедания морковки
-func eat_carrot(carrot_node: Node):
-	if not is_instance_valid(carrot_node):
-		printerr("eat_carrot: Попытка съесть невалидную морковку!")
+func eat_carrot(carrot_node: Node) -> void:
+	if not is_instance_valid(carrot_node) or not carrot_node is Carrot:
+		printerr("eat_carrot: Попытка съесть невалидный узел или узел не типа Carrot!")
 		return
 	
 	# Получаем grid_pos из самого узла морковки
@@ -452,7 +462,7 @@ func check_win_condition() -> bool:
 	return carrots_remaining <= 0
 
 # Переход на следующий уровень (вызывается из _on_rabbit_move_finished, когда условия выполнены)
-func trigger_next_level():
+func trigger_next_level() -> void:
 	print("ПОБЕДА! Кролик на выходе, все морковки собраны.")
 	var game_manager = get_node("/root/GameManager")
 	if game_manager:
@@ -462,7 +472,7 @@ func trigger_next_level():
 		get_tree().quit() # Аварийный выход
 
 # Перезапуск текущего уровня
-func restart_level():
+func restart_level() -> void:
 	get_tree().reload_current_scene()
 
 # Можно добавить обработку нажатия R для перезапуска

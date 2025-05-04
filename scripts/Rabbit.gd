@@ -6,10 +6,8 @@ extends Node2D
 # Сигнал, информирующий Level об окончании анимации движения кролика.
 signal move_finished
 
-# Экспортируемая переменная для легкой настройки размера тайла.
-# Должна устанавливаться из Level.gd при инициализации.
-# @export var tile_size: int = 64 
-var tile_size: int = 64 # Теперь устанавливается через initialize
+# Размер тайла, устанавливается из Level.gd при инициализации.
+var tile_size: int = 64
 
 # Длительность анимации скольжения кролика.
 @export var move_duration: float = 0.3
@@ -25,30 +23,32 @@ var is_moving: bool = false
 
 
 # Инициализация объекта из Level.gd
-func initialize(level_tile_size: int):
+func initialize(level_tile_size: int) -> void:
 	tile_size = level_tile_size
 
 
 # Мгновенно устанавливает позицию кролика на указанную клетку сетки.
-func set_grid_position(new_grid_pos: Vector2i):
+func set_grid_position(new_grid_pos: Vector2i) -> void:
 	grid_pos = new_grid_pos
+	# Устанавливаем мировую позицию в центр клетки
 	position = Vector2(new_grid_pos) * tile_size + Vector2(tile_size, tile_size) / 2.0
 
 
 # Анимирует плавное перемещение кролика в указанную мировую позицию.
-func animate_move(target_world_position: Vector2, duration: float):
+func animate_move(target_world_position: Vector2, duration: float) -> void:
 	if is_moving:
 		return
 
 	is_moving = true
-	var tween = create_tween()
+	var tween: Tween = create_tween()
 	# Используем easing для более приятного движения
 	tween.tween_property(self, "position", target_world_position, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	# Подписываемся на завершение анимации
 	tween.finished.connect(_on_tween_finished)
 
 
 # Вызывается автоматически по завершении анимации Tween.
-func _on_tween_finished():
+func _on_tween_finished() -> void:
 	is_moving = false
 	emit_signal("move_finished")
 

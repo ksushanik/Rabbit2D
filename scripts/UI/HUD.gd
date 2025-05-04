@@ -6,7 +6,7 @@ extends CanvasLayer
 
 # Функция для обновления текста в Label
 # Вызывается через сигнал из Level.gd
-func update_carrot_count(count: int):
+func update_carrot_count(count: int) -> void:
 	if carrot_count_label:
 		carrot_count_label.text = "Морковки: %d" % count
 	else:
