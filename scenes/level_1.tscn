@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=3 uid="uid://blj0vg1sg1aea"]
+[gd_scene load_steps=7 format=3 uid="uid://dxcig7q2h2uoe"]
 
 [ext_resource type="Script" path="res://scripts/Level.gd" id="1_htkcg"]
+[ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_hudsc"]
 [ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="2_sun3m"]
 [ext_resource type="Script" path="res://scripts/Carrot.gd" id="3_bgxk8"]
-[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://world.tres" id="3_qk3jl"]
+[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://assets/tilemap/world.tres" id="3_qk3jl"]
 [ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="6_hfpwa"]
 
 [node name="Level1" type="Node2D" node_paths=PackedStringArray("ground_layer", "carrots_container", "rabbit")]
@@ -11,6 +12,7 @@ script = ExtResource("1_htkcg")
 ground_layer = NodePath("GroundLayer")
 carrots_container = NodePath("CarrotsContainer")
 rabbit = NodePath("Rabbit")
+hud_scene = ExtResource("2_hudsc")
 
 [node name="GroundLayer" type="TileMap" parent="."]
 tile_set = ExtResource("3_qk3jl")

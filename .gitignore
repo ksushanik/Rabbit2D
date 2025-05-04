@@ -35,3 +35,6 @@ export_credentials.cfg
 
 # History for UI/tool scripts in the editor
 .history/
+
+# Cursor-specific ignores
+.cursorignore

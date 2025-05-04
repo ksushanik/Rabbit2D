@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=3 uid="uid://c6n3xep3a8u6d"]
+
+[ext_resource type="Script" path="res://scripts/UI/HUD.gd" id="1_y0wke"]
+
+[sub_resource type="LabelSettings" id="LabelSettings_nj1va"]
+font_size = 24
+font_color = Color(0.960784, 0.631373, 0.211765, 1) # Оранжевый цвет
+outline_size = 5
+outline_color = Color(0, 0, 0, 1)
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_y0wke")
+
+[node name="CarrotCountLabel" type="Label" parent="."]
+offset_left = 15.0
+offset_top = 10.0
+offset_right = 215.0
+offset_bottom = 45.0
+text = "Морковки: 99"
+label_settings = SubResource("LabelSettings_nj1va") 

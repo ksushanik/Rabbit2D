@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=3 uid="uid://dxk30pek42cda"]
+[gd_scene load_steps=6 format=3 uid="uid://dxk30pek42cda"]
 
 [ext_resource type="Script" path="res://scripts/Level.gd" id="1_pc55h"]
-[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://world.tres" id="2_ipuvy"]
+[ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_4osri"]
+[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://assets/tilemap/world.tres" id="2_ipuvy"]
 [ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="3_nkaj2"]
 [ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="4_tokb0"]
 
@@ -10,6 +11,7 @@ script = ExtResource("1_pc55h")
 ground_layer = NodePath("GroundLayer")
 carrots_container = NodePath("CarrotsContainer")
 rabbit = NodePath("Rabbit")
+hud_scene = ExtResource("2_4osri")
 
 [node name="GroundLayer" type="TileMap" parent="."]
 position = Vector2(0, -1)

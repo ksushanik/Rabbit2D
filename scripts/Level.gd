@@ -11,6 +11,11 @@ extends Node2D
 @export var ground_layer: TileMap = null # <-- Изменено на @export
 @export var carrots_container: Node2D = null # <-- Изменено на @export
 @export var rabbit: Rabbit = null # <-- Изменено на @export и тип Rabbit
+@export var hud_scene: PackedScene = null # <-- ДОБАВЛЕНО: Ссылка на сцену HUD
+
+# --- Сигналы ---
+# Отправляется при изменении количества морковок
+signal carrots_updated(count: int) # <-- ДОБАВЛЕНО
 
 # --- Состояние игры --- 
 enum State { PLAYER_TURN, PROCESSING_MOVE }
@@ -39,6 +44,19 @@ func _ready():
 		printerr("Level.gd: Узел CarrotsContainer не найден!")
 		return
 	
+	# --- ДОБАВЛЕНО: Инстанцирование и подключение HUD ---
+	if hud_scene:
+		var hud_instance = hud_scene.instantiate()
+		add_child(hud_instance)
+		# Подключаем сигнал этого уровня к функции обновления HUD
+		if hud_instance.has_method("update_carrot_count"):
+			carrots_updated.connect(hud_instance.update_carrot_count)
+		else:
+			printerr("Ошибка: Экземпляр HUD не имеет метода update_carrot_count!")
+	else:
+		print("Предупреждение: Сцена HUD не установлена в Level.gd")
+	# --------------------------------------------------
+
 	# 2. Инициализация Кролика
 	# Получаем стартовую позицию кролика из его положения в редакторе
 	var rabbit_start_grid_pos = world_to_grid(rabbit.global_position) # Используем global_position
@@ -87,6 +105,7 @@ func _ready():
 	
 	carrots_remaining = active_carrots.size()
 	print("Уровень начат. Морковок: ", carrots_remaining)
+	carrots_updated.emit(carrots_remaining) # <-- ДОБАВЛЕНО: Отправляем начальное значение в HUD
 
 	# 4. Установка начального состояния
 	current_state = State.PLAYER_TURN
@@ -411,8 +430,9 @@ func eat_carrot(carrot_node: Node):
 			return
 
 	if active_carrots.has(carrot_pos):
-		active_carrots.erase(carrot_pos) # Удаляем из нашего отслеживания
+		active_carrots.erase(carrot_pos)
 		carrots_remaining -= 1
+		carrots_updated.emit(carrots_remaining) # <-- ДОБАВЛЕНО: Отправляем обновленное значение в HUD
 		# Узел морковки сам удалит себя после анимации 'eat'
 		if carrot_node.has_method("eat"):
 			carrot_node.eat() # Запускаем анимацию и удаление самой морковки
