@@ -50,7 +50,28 @@ func _ready() -> void:
 		printerr("Level.gd: Узел CarrotsContainer не найден!")
 		return
 	
-	# --- ДОБАВЛЕНО: Инстанцирование и подключение HUD ---
+	# --- ДОБАВЛЕНО: Проверка и настройка Camera2D ---
+	var camera: Camera2D = find_child("*Camera2D", true, false) as Camera2D # Ищем существующую камеру
+	if not is_instance_valid(camera):
+		print("Camera2D не найдена, создаем программно.")
+		camera = Camera2D.new()
+		camera.name = "ProgrammaticCamera"
+		add_child(camera)
+		# Центрируем камеру по тайлмапу
+		var map_rect = ground_layer.get_used_rect()
+		var map_center_local = map_rect.get_center()
+		camera.position = ground_layer.map_to_local(map_center_local)
+		camera.zoom = Vector2(1, 1) # <-- Устанавливаем зум 1:1
+	else:
+		print("Найдена существующая Camera2D.")
+	# Если камера уже есть, можно тоже принудительно установить зум?
+	# camera.zoom = Vector2(1, 1) # Раскомментируй, если нужно переопределять зум существующей камеры
+	
+	# Активируем камеру (делаем текущей)
+	camera.enabled = true 
+	# ------------------------------------------------
+
+	# 2. Инстанцирование и подключение HUD
 	if hud_scene:
 		var hud_instance: CanvasLayer = hud_scene.instantiate() as CanvasLayer
 		if hud_instance:
@@ -69,7 +90,7 @@ func _ready() -> void:
 		print("Предупреждение: Сцена HUD не установлена в Level.gd")
 	# --------------------------------------------------
 
-	# 2. Инициализация Кролика
+	# 3. Инициализация Кролика
 	# Получаем стартовую позицию кролика из его положения в редакторе
 	var rabbit_start_grid_pos = world_to_grid(rabbit.global_position) # Используем global_position
 	# Передаем размер тайла и устанавливаем позицию
@@ -90,7 +111,7 @@ func _ready() -> void:
 	else:
 		print("Сигнал rabbit.move_finished уже был подключен.")
 
-	# 3. Инициализация Морковок
+	# 4. Инициализация Морковок
 	active_carrots.clear()
 	# --- DEBUG START ---
 	if not carrots_container:
@@ -121,7 +142,7 @@ func _ready() -> void:
 	print("Уровень начат. Морковок: ", carrots_remaining)
 	carrots_updated.emit(carrots_remaining) # <-- ДОБАВЛЕНО: Отправляем начальное значение в HUD
 
-	# 4. Создание плеера для звука завершения
+	# 5. Создание плеера для звука завершения
 	if not level_complete_sound_path.is_empty():
 		var sound = load(level_complete_sound_path)
 		if sound is AudioStream:
@@ -134,7 +155,7 @@ func _ready() -> void:
 			printerr("Level.gd: Не удалось загрузить звук завершения уровня: ", level_complete_sound_path)
 	# ----------------------------------------
 
-	# 5. Установка начального состояния
+	# 6. Установка начального состояния
 	current_state = State.PLAYER_TURN
 
 

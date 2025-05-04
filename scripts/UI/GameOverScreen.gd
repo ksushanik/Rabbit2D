@@ -5,6 +5,9 @@ extends CanvasLayer
 @onready var quit_button: Button = $CenterContainer/VBoxContainer/QuitButton
 
 func _ready() -> void:
+	# Устанавливаем режим обработки, чтобы UI работал на паузе
+	self.process_mode = Node.PROCESS_MODE_ALWAYS
+	
 	# Подключаем сигналы кнопок при готовности узла
 	if play_again_button:
 		play_again_button.pressed.connect(_on_play_again_button_pressed)
