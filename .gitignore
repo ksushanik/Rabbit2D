@@ -1,20 +1,26 @@
-# Godot-specific ignores
+# Godot 4+ specific ignores
 .godot/
 
 # Mono-specific ignores
 .mono/
+data_*/
+mono_crash.*.json
 
 # Asset library ignores
 .config/godot/
 
 # Files imported by Godot (better handled by export templates)
-*.import
+# *.import # Let's keep .import files under version control for better collaboration
 
 # Build results
 export_presets.cfg
+export.cfg # Included from remote
 
 # Optional user data
 export_credentials.cfg
+
+# Imported translations (automatically generated from CSV files)
+*.translation
 
 # VS Code specific ignores (if used)
 .vscode/
