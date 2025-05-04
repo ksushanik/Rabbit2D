@@ -210,45 +210,51 @@ func start_rabbit_move(direction: Vector2i) -> void:
 		current_state = State.PLAYER_TURN
 
 
-# Вызывается, когда анимация движения Кролика завершена (сигнал от Rabbit.gd)
+# Вызывается, когда анимация движения Кролика завершена
 func _on_rabbit_move_finished() -> void:
-	# 1. Обновляем логическую позицию кролика 
-	var final_grid_pos = world_to_grid(rabbit.position)
 	if not is_instance_valid(rabbit):
 		printerr("_on_rabbit_move_finished: Экземпляр кролика недействителен!")
 		return
+		
+	var final_grid_pos: Vector2i = world_to_grid(rabbit.position)
 	rabbit.grid_pos = final_grid_pos
-	print("Кролик завершил движение в: ", final_grid_pos)
 	
-	# 2. Проверка "Поедания"
-	var eaten_carrot_this_turn = false
+	var eaten_carrot_this_turn: bool = false
+	var adjacent_scared_by_eating: bool = false # Флаг для испуганных соседей
+
 	if last_move_calculation_result.get("will_eat_carrot", false):
-		var carrot_to_eat = last_move_calculation_result.get("stopped_by_carrot", null)
-		if carrot_to_eat and is_instance_valid(carrot_to_eat):
-			print("Кролик съел морковку в: ", carrot_to_eat.grid_pos)
-			eat_carrot(carrot_to_eat) # eat_carrot теперь только удаляет морковь и уменьшает счетчик
-			eaten_carrot_this_turn = true
-			# НЕ проверяем победу сразу после еды здесь
+		var carrot_to_eat: Node = last_move_calculation_result.get("stopped_by_carrot", null)
+		if is_instance_valid(carrot_to_eat):
+			# Вызываем eat_carrot и сохраняем результат (были ли напуганы соседи)
+			adjacent_scared_by_eating = eat_carrot(carrot_to_eat) 
+			eaten_carrot_this_turn = true # Сам факт поедания произошел
 		else:
 			printerr("Ошибка: will_eat_carrot=true, но stopped_by_carrot недействителен!")
 
-	# --- ПРОВЕРКА ПОБЕДЫ --- 
-	# Происходит ПОСЛЕ обновления позиции и возможного поедания
+	# Проверка победы
 	if check_win_condition() and is_exit(final_grid_pos):
-		trigger_next_level() # Вызываем переход на следующий уровень
-		return # Выходим, так как уровень завершен
-	# ------------------------
+		trigger_next_level()
+		return
 
-	# 3. Проверка "Запугивания" (ТОЛЬКО если морковка не была съедена и не победа)
+	# Запугивание морковок (если кролик НЕ ел) 
+	# ИЛИ Завершение хода (если кролик ел, но соседи НЕ испугались)
 	if not eaten_carrot_this_turn:
+		# Кролик не ел, пугаем морковки рядом с КРОЛИКОМ
 		_process_scared_carrots(final_grid_pos)
 	else:
-		# Если морковка была съедена, ход сразу заканчивается (не пугаем), возвращаем ход игроку
-		print("Морковка съедена, ход завершен.")
-		current_state = State.PLAYER_TURN
+		# Кролик СЪЕЛ морковку
+		if not adjacent_scared_by_eating:
+			# Кролик съел, но соседи НЕ были напуганы -> завершаем ход
+			print("Морковка съедена (без испуга соседей), ход завершен.")
+			current_state = State.PLAYER_TURN
+		# else: 
+			# Кролик съел И соседи БЫЛИ напуганы.
+			# Ничего не делаем здесь, current_state остается PROCESSING_MOVE.
+			# _on_carrot_move_finished обработает завершение их движения.
+			# print("Морковка съедена, ждем движения испуганных соседей...")
 
 
-# Обрабатывает логику запугивания морковок после хода кролика
+# Обрабатывает логику запугивания морковок ПОСЛЕ ХОДА КРОЛИКА (если он не ел)
 func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
 	var scared_carrots_list: Array[Carrot] = []
 	for offset in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
@@ -264,8 +270,9 @@ func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
 				# print("Scaring морковки в %s заблокировано стеной." % check_pos) # DEBUG
 		
 	# Запуск движения напуганных морковок
-	moving_carrots_count = scared_carrots_list.size()
-	print("Напугано морковок: ", moving_carrots_count)
+	# ВАЖНО: Устанавливаем счетчик, а не добавляем, т.к. этот тип испуга происходит только если не было поедания
+	moving_carrots_count = scared_carrots_list.size() 
+	print("Напугано %d морковок кроликом." % moving_carrots_count) # Уточнил сообщение
 
 	if moving_carrots_count > 0:
 		for carrot_node in scared_carrots_list:
@@ -282,7 +289,7 @@ func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
 			else:
 				printerr("Ошибка: У узла морковки %s отсутствует метод scare_and_slide!" % carrot_node.name)
 	else:
-		# Никто не напуган, можно сразу вернуть ход игроку (победа уже проверена ранее)
+		# Никто не напуган кроликом, можно сразу вернуть ход игроку
 		current_state = State.PLAYER_TURN
 
 
@@ -461,37 +468,59 @@ func calculate_slide_destination(start_grid_pos: Vector2i, direction: Vector2i, 
 
 
 # Обработка поедания морковки
-func eat_carrot(carrot_node: Node) -> void:
+# Возвращает true, если были напуганы соседние морковки, иначе false.
+func eat_carrot(carrot_node: Node) -> bool:
 	if not is_instance_valid(carrot_node) or not carrot_node is Carrot:
 		printerr("eat_carrot: Попытка съесть невалидный узел или узел не типа Carrot!")
-		return
+		return false
 	
-	# Получаем grid_pos из самого узла морковки
-	var carrot_pos: Vector2i
-	if carrot_node.has_method("get_grid_position"):
-		carrot_pos = carrot_node.get_grid_position()
-	else:
-		# Пытаемся вычислить из мировой позиции как запасной вариант
-		if carrot_node is Node2D:
-			carrot_pos = world_to_grid(carrot_node.global_position)
-			print("Предупреждение: У морковки нет get_grid_position(), позиция вычислена из global_position.")
-		else:
-			printerr("eat_carrot: Невозможно получить grid_pos для морковки!")
-			return
+	var carrot_obj: Carrot = carrot_node as Carrot
+	var carrot_pos: Vector2i = carrot_obj.get_grid_position()
+
+	var adjacent_carrots_scared_count: int = 0
+	var scared_by_eating_list: Array[Dictionary] = []
 
 	if active_carrots.has(carrot_pos):
-		active_carrots.erase(carrot_pos)
+		# --- ПРОВЕРКА И СБОР СОСЕДЕЙ ДЛЯ ИСПУГА --- 
+		# Делаем это ДО удаления съеденной морковки из active_carrots
+		for offset in [Vector2i.UP, Vector2i.DOWN, Vector2i.LEFT, Vector2i.RIGHT]:
+			var check_pos: Vector2i = carrot_pos + offset
+			var adjacent_carrot: Carrot = get_carrot_at(check_pos)
+
+			# Проверяем, что это другая морковка, она валидна и не движется
+			if is_instance_valid(adjacent_carrot) and adjacent_carrot != carrot_obj and not adjacent_carrot.is_moving:
+				# Проверяем стену МЕЖДУ съеденной и соседней
+				if not _is_move_blocked_by_partial_wall(carrot_pos, check_pos):
+					var direction_away: Vector2i = offset # Направление от съеденной морковки
+					# Рассчитываем, может ли она вообще сдвинуться
+					var calc_result: Dictionary = calculate_slide_destination(adjacent_carrot.grid_pos, direction_away, adjacent_carrot)
+					var final_carrot_pos: Vector2i = calc_result["final_pos"]
+					# Если может сдвинуться, добавляем в список для испуга
+					if final_carrot_pos != adjacent_carrot.grid_pos:
+						scared_by_eating_list.append({"carrot": adjacent_carrot, "direction": direction_away, "final_pos": final_carrot_pos})
+						adjacent_carrots_scared_count += 1
+						
+		# --- ОБРАБОТКА СЪЕДЕННОЙ МОРКОВКИ --- 
+		active_carrots.erase(carrot_pos) # Удаляем из словаря
 		carrots_remaining -= 1
-		carrots_updated.emit(carrots_remaining) # <-- ДОБАВЛЕНО: Отправляем обновленное значение в HUD
-		# Узел морковки сам удалит себя после анимации 'eat'
-		if carrot_node.has_method("eat"):
-			carrot_node.eat() # Запускаем анимацию и удаление самой морковки
-		else:
-			printerr("Ошибка: У морковки %s нет метода eat()!" % carrot_node.name)
-			carrot_node.queue_free() # Удаляем принудительно, если нет метода
+		carrots_updated.emit(carrots_remaining)
+		carrot_obj.eat() # Запускаем анимацию/звук поедания
 		print("Морковка съедена. Осталось: ", carrots_remaining)
+
+		# --- ЗАПУСК ИСПУГА СОСЕДЕЙ --- 
+		if adjacent_carrots_scared_count > 0:
+			moving_carrots_count += adjacent_carrots_scared_count # Увеличиваем счетчик движущихся
+			print("Испугано %d соседних морковок поеданием." % adjacent_carrots_scared_count)
+			for scare_info in scared_by_eating_list:
+				var carrot_to_scare: Carrot = scare_info["carrot"]
+				var final_pos: Vector2i = scare_info["final_pos"]
+				carrot_to_scare.scare_and_slide(final_pos, self)
+			return true # Сигнализируем, что соседи были напуганы
+		else:
+			return false # Соседи не были напуганы
 	else:
 		printerr("Попытка съесть морковку, которой нет в active_carrots по позиции %s: %s" % [carrot_pos, carrot_node.name])
+		return false
 
 
 # --- Условия победы и управление уровнем --- 
