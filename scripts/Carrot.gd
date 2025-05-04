@@ -22,6 +22,14 @@ var is_moving: bool = false
 # Ссылка на узел спрайта для удобства.
 @onready var sprite: Sprite2D = $Sprite2D
 
+# --- Экспортируемые переменные ---
+@export var move_sound_path: String = "" # <-- ДОБАВЛЕНО: Путь к звуку движения
+@export var eat_sound_path: String = "" # <-- ДОБАВЛЕНО: Путь к звуку поедания
+
+# --- Переменные ---
+var _move_sound_player: AudioStreamPlayer = null # <-- ДОБАВЛЕНО
+var _eat_sound_player: AudioStreamPlayer = null # <-- ДОБАВЛЕНО
+
 
 # Инициализация объекта из Level.gd
 func initialize(level_tile_size: int) -> void:
@@ -77,6 +85,10 @@ func scare_and_slide(final_grid_pos: Vector2i, level: Node) -> void:
 
 	# Если морковка вообще должна сдвинуться (сравниваем с текущей позицией)
 	if final_grid_pos != grid_pos:
+		# Воспроизводим звук движения
+		if is_instance_valid(_move_sound_player) and not _move_sound_player.playing:
+			_move_sound_player.play()
+		
 		print("Морковка %s скользит из %s в %s" % [name, grid_pos, final_grid_pos])
 		var target_world_pos: Vector2 = Vector2(final_grid_pos) * tile_size + Vector2(tile_size, tile_size) / 2.0
 		animate_move(target_world_pos, scare_move_duration, level) # Передаем level для колбэка
@@ -89,7 +101,11 @@ func scare_and_slide(final_grid_pos: Vector2i, level: Node) -> void:
 
 # Функция "поедания" морковки.
 func eat() -> void:
-	# Можно добавить анимацию исчезновения (например, scale или modulate alpha)
+	# Воспроизводим звук поедания
+	if is_instance_valid(_eat_sound_player) and not _eat_sound_player.playing:
+		_eat_sound_player.play()
+		
+	# Запускаем анимацию исчезновения
 	var tween: Tween = create_tween()
 	tween.tween_property(sprite, "scale", Vector2.ZERO, eat_duration).set_trans(Tween.TRANS_QUAD)
 	# После анимации удаляем морковку со сцены
@@ -97,4 +113,26 @@ func eat() -> void:
 
 
 func _ready() -> void:
-	pass # Инициализация tile_size и grid_pos происходит из Level.gd
+	# Создаем плеер для звука движения
+	if not move_sound_path.is_empty():
+		var sound = load(move_sound_path)
+		if sound is AudioStream:
+			_move_sound_player = AudioStreamPlayer.new()
+			_move_sound_player.stream = sound
+			_move_sound_player.name = "MoveSoundPlayer"
+			_move_sound_player.volume_db = -8.0
+			add_child(_move_sound_player)
+		else:
+			printerr("Carrot.gd: Не удалось загрузить звук движения: ", move_sound_path)
+	
+	# Создаем плеер для звука поедания
+	if not eat_sound_path.is_empty():
+		var sound = load(eat_sound_path)
+		if sound is AudioStream:
+			_eat_sound_player = AudioStreamPlayer.new()
+			_eat_sound_player.stream = sound
+			_eat_sound_player.name = "EatSoundPlayer"
+			_eat_sound_player.volume_db = -3.0
+			add_child(_eat_sound_player)
+		else:
+			printerr("Carrot.gd: Не удалось загрузить звук поедания: ", eat_sound_path)

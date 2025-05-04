@@ -21,6 +21,27 @@ var is_moving: bool = false
 # Убедись, что узел спрайта в сцене Rabbit.tscn называется Sprite2D
 @onready var sprite: Sprite2D = $Sprite2D
 
+# Путь к звуку движения
+@export var move_sound_path: String = ""
+
+# Ссылка на программно созданный плеер
+var _move_sound_player: AudioStreamPlayer = null
+
+
+func _ready() -> void:
+	# Создаем плеер для звука движения
+	if not move_sound_path.is_empty():
+		var sound = load(move_sound_path)
+		if sound is AudioStream:
+			_move_sound_player = AudioStreamPlayer.new()
+			_move_sound_player.stream = sound
+			_move_sound_player.name = "MoveSoundPlayer"
+			_move_sound_player.volume_db = -6.0 # Можно настроить громкость здесь
+			# _move_sound_player.bus = &"SFX" # Можно раскомментировать, если шина SFX создана
+			add_child(_move_sound_player)
+		else:
+			printerr("Rabbit.gd: Не удалось загрузить звук движения: ", move_sound_path)
+
 
 # Инициализация объекта из Level.gd
 func initialize(level_tile_size: int) -> void:
@@ -39,6 +60,10 @@ func animate_move(target_world_position: Vector2, duration: float) -> void:
 	if is_moving:
 		return
 
+	# Воспроизводим звук движения
+	if is_instance_valid(_move_sound_player) and not _move_sound_player.playing:
+		_move_sound_player.play()
+	
 	is_moving = true
 	var tween: Tween = create_tween()
 	# Используем easing для более приятного движения

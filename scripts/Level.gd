@@ -13,6 +13,9 @@ extends Node2D
 @export var rabbit: Rabbit = null # <-- Изменено на @export и тип Rabbit
 @export var hud_scene: PackedScene = null # <-- ДОБАВЛЕНО: Ссылка на сцену HUD
 
+# --- Ресурсы ---
+@export var level_complete_sound_path: String = "" # <-- ВОССТАНОВЛЕНО
+
 # --- Сигналы ---
 # Отправляется при изменении количества морковок
 signal carrots_updated(count: int) # <-- ДОБАВЛЕНО
@@ -29,6 +32,9 @@ var carrots_remaining: int = 0
 var moving_carrots_count: int = 0 # Счетчик морковок, которые сейчас анимируются
 var last_rabbit_direction: Vector2i = Vector2i.ZERO # Запоминаем последнее направление кролика
 var last_move_calculation_result: Dictionary = {} # <-- ДОБАВЛЕНО: Сохраняем результат расчета хода
+
+# --- Внутренние переменные ---
+var _level_complete_player: AudioStreamPlayer = null # <-- ВОССТАНОВЛЕНО
 
 
 # --- Инициализация уровня --- 
@@ -115,7 +121,20 @@ func _ready() -> void:
 	print("Уровень начат. Морковок: ", carrots_remaining)
 	carrots_updated.emit(carrots_remaining) # <-- ДОБАВЛЕНО: Отправляем начальное значение в HUD
 
-	# 4. Установка начального состояния
+	# 4. Создание плеера для звука завершения
+	if not level_complete_sound_path.is_empty():
+		var sound = load(level_complete_sound_path)
+		if sound is AudioStream:
+			_level_complete_player = AudioStreamPlayer.new()
+			_level_complete_player.stream = sound
+			_level_complete_player.name = "LevelCompleteSoundPlayer"
+			# _level_complete_player.bus = &"SFX" # Можно раскомментировать
+			add_child(_level_complete_player)
+		else:
+			printerr("Level.gd: Не удалось загрузить звук завершения уровня: ", level_complete_sound_path)
+	# ----------------------------------------
+
+	# 5. Установка начального состояния
 	current_state = State.PLAYER_TURN
 
 
@@ -464,6 +483,13 @@ func check_win_condition() -> bool:
 # Переход на следующий уровень (вызывается из _on_rabbit_move_finished, когда условия выполнены)
 func trigger_next_level() -> void:
 	print("ПОБЕДА! Кролик на выходе, все морковки собраны.")
+	
+	# Воспроизводим звук завершения, если он есть
+	if is_instance_valid(_level_complete_player) and not _level_complete_player.playing:
+		_level_complete_player.play()
+		# Можно добавить yield, если нужно дождаться звука
+		# yield(_level_complete_player, "finished")
+	
 	var game_manager = get_node("/root/GameManager")
 	if game_manager:
 		game_manager.load_next_level()
