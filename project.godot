@@ -23,10 +23,9 @@ GameManager="*res://scripts/GameManager.gd"
 
 window/size/viewport_width=1280
 window/size/viewport_height=720
-# window/size/window_width_override=1280
-# window/size/window_height_override=720
-window/stretch/mode="disabled"
 window/stretch/aspect="ignore"
+#window/size/window_width_override=1280
+#window/size/window_height_override=720
 
 [input]
 
@@ -58,5 +57,5 @@ restart={
 
 [rendering]
 
-# Для пиксель-арта часто полезно включить
-textures/canvas_textures/default_texture_filter = 0
+textures/canvas_textures/default_texture_filter=0
+"#ÐÐ»ÑÐ¿Ð¸ÐºÑÐµÐ»Ñ-Ð°ÑÑÐ°ÑÐ°ÑÑÐ¾Ð¿Ð¾Ð»ÐµÐ·Ð½Ð¾Ð²ÐºÐ»ÑÑÐ¸ÑÑtextures/canvas_textures/default_texture_filter"=0

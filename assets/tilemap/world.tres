@@ -1,6 +1,15 @@
-[gd_resource type="TileSet" load_steps=3 format=3 uid="uid://c7tqre1fkf5pn"]
+[gd_resource type="TileSet" load_steps=5 format=3 uid="uid://c7tqre1fkf5pn"]
 
+[ext_resource type="Texture2D" uid="uid://ig8djow1x4eq" path="res://assets/tilemap/holes.png" id="1_xdja8"]
 [ext_resource type="Texture2D" uid="uid://c2w1yf71dam8w" path="res://assets/tilemap/rabbit_2d.png" id="1_xuymf"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_eqsnr"]
+texture = ExtResource("1_xdja8")
+texture_region_size = Vector2i(64, 64)
+0:0/0 = 0
+0:0/0/custom_data_0 = "pit"
+1:0/0 = 0
+1:0/0/custom_data_0 = "pit"
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_hi05a"]
 texture = ExtResource("1_xuymf")
@@ -24,11 +33,14 @@ texture_region_size = Vector2i(64, 64)
 }
 2:1/0 = 0
 2:1/0/physics_layer_0/polygon_0/points = PackedVector2Array(-32, -32, 32, -32, 32, 32, -32, 32)
+3:1/next_alternative_id = 2
 3:1/0 = 0
+4:1/next_alternative_id = 2
 4:1/0 = 0
 4:1/0/custom_data_1 = {
 "right": true
 }
+0:2/next_alternative_id = 2
 0:2/0 = 0
 0:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(32, -32, 32, 32, -32, 32, -32, -32)
 1:2/0 = 0
@@ -36,6 +48,7 @@ texture_region_size = Vector2i(64, 64)
 "left": true
 }
 2:2/0 = 0
+3:2/next_alternative_id = 2
 3:2/0 = 0
 4:2/0 = 0
 4:2/0/custom_data_1 = {
@@ -62,3 +75,4 @@ custom_data_layer_0/type = 4
 custom_data_layer_1/name = "blocks"
 custom_data_layer_1/type = 27
 sources/1 = SubResource("TileSetAtlasSource_hi05a")
+sources/0 = SubResource("TileSetAtlasSource_eqsnr")

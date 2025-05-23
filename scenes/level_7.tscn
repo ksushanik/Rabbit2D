@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://ca7g0hlcece0"]
+
+[ext_resource type="Script" path="res://scripts/Level.gd" id="1_rmpqq"]
+[ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_t7nkw"]
+[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://assets/tilemap/world.tres" id="3_1cl31"]
+[ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="4_ohwob"]
+[ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="5_mn3y5"]
+
+[node name="Level6" type="Node2D" node_paths=PackedStringArray("ground_layer", "carrots_container", "rabbit")]
+script = ExtResource("1_rmpqq")
+ground_layer = NodePath("GroundLayer")
+carrots_container = NodePath("CarrotsContainer")
+rabbit = NodePath("Rabbit")
+hud_scene = ExtResource("2_t7nkw")
+
+[node name="GroundLayer" type="TileMap" parent="."]
+tile_set = ExtResource("3_1cl31")
+format = 2
+layer_0/tile_data = PackedInt32Array(65536, 1, 0, 131072, 1, 0, 196608, 1, 0, 262144, 1, 0, 327680, 1, 0, 393216, 1, 0, 458752, 1, 0, 458753, 1, 0, 458754, 1, 0, 458755, 1, 0, 458756, 1, 0, 458757, 1, 0, 458758, 1, 0, 65543, 1, 0, 131079, 1, 0, 196615, 1, 0, 262151, 1, 0, 327687, 1, 0, 393223, 1, 0, 458759, 1, 0, 65537, 1, 0, 131073, 196609, 2, 196609, 196609, 1, 262145, 196609, 2, 327681, 196609, 1, 393217, 196609, 2, 131074, 196609, 1, 196610, 196609, 2, 262146, 196609, 1, 327682, 196609, 2, 65539, 1, 0, 131075, 196609, 2, 65541, 1, 0, 131077, 196609, 2, 131076, 196609, 1, 196612, 196609, 2, 262148, 196609, 1, 327684, 196609, 2, 196611, 196609, 1, 262147, 196609, 2, 327683, 196609, 1, 393219, 196609, 2, 327685, 196609, 1, 393221, 196609, 2, 196613, 196609, 1, 262149, 196609, 2, 131078, 196609, 1, 196614, 196609, 2, 262150, 196609, 1, 327686, 196609, 2, 65538, 1, 0, 65540, 1, 0, 393218, 131073, 2, 393220, 131073, 2, 393222, 131073, 2, 65542, 1, 0)
+
+[node name="CarrotsContainer" type="Node2D" parent="."]
+
+[node name="Carrot" parent="CarrotsContainer" instance=ExtResource("4_ohwob")]
+visible = false
+position = Vector2(416, 289)
+
+[node name="Carrot2" parent="CarrotsContainer" instance=ExtResource("4_ohwob")]
+visible = false
+position = Vector2(416, 352)
+
+[node name="Rabbit" parent="." instance=ExtResource("5_mn3y5")]
+visible = false
+position = Vector2(225, 352)
