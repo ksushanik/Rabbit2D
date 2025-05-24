@@ -1,0 +1,36 @@
+[gd_scene load_steps=6 format=3 uid="uid://cqqq37dim0qe8"]
+
+[ext_resource type="Script" path="res://scripts/Level.gd" id="1_nlkdq"]
+[ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_mr5ql"]
+[ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="2_ph8wa"]
+[ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="3_bk0qa"]
+[ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="6_731ab"]
+
+[node name="FenceTestLevel" type="Node2D" node_paths=PackedStringArray("ground_layer", "carrots_container", "rabbit")]
+script = ExtResource("1_nlkdq")
+ground_layer = NodePath("GroundLayer")
+carrots_container = NodePath("CarrotsContainer")
+rabbit = NodePath("Rabbit")
+hud_scene = ExtResource("2_mr5ql")
+
+[node name="GroundLayer" type="TileMap" parent="."]
+tile_set = ExtResource("3_bk0qa")
+rendering_quadrant_size = 32
+format = 2
+layer_0/name = "Ground"
+layer_0/tile_data = PackedInt32Array(0, 393216, 2, 1, 196608, 1342177282, 2, 196608, 1342177282, 3, 196608, 1342177282, 4, 196608, 1342177282, 5, 196608, 1342177282, 6, 196608, 1342177282, 7, 393216, 1342177282, 65536, 196608, 2, 65537, 327680, 0, 65538, 0, 0, 65539, 524288, 0, 65540, 327680, 0, 65541, 262144, 0, 65542, 131072, 0, 65543, 196608, 805306370, 131072, 196608, 2, 131073, 458752, 0, 131074, 0, 0, 131075, 131072, 0, 131076, 458752, 0, 131077, 131072, 0, 131078, 458752, 0, 131079, 196608, 805306370, 196608, 196608, 2, 196609, 262144, 0, 196610, 0, 0, 196611, 196608, 0, 196612, 458752, 0, 196613, 524288, 0, 196614, 524288, 0, 196615, 196608, 805306370, 262144, 196608, 2, 262145, 65536, 0, 262146, 327680, 0, 262147, 524288, 0, 262148, 327680, 0, 262149, 65536, 0, 262150, 262144, 0, 262151, 196608, 805306370, 327680, 196608, 2, 327681, 458752, 0, 327682, 524288, 0, 327683, 0, 0, 327684, 393216, 0, 327685, 131072, 0, 327686, 0, 0, 327687, 196608, 805306370, 393216, 393216, 1610612738, 393217, 196608, 1610612738, 393218, 196608, 1610612738, 393219, 196608, 1610612738, 393220, 196608, 1610612738, 393221, 196608, 1610612738, 393222, 196608, 1610612738, 393223, 393216, 805306370)
+layer_1/name = "Fence"
+layer_1/enabled = true
+layer_1/modulate = Color(1, 1, 1, 1)
+layer_1/y_sort_enabled = false
+layer_1/y_sort_origin = 0
+layer_1/z_index = 10
+layer_1/tile_data = PackedInt32Array()
+
+[node name="Rabbit" parent="." instance=ExtResource("2_ph8wa")]
+position = Vector2(48, 48)
+
+[node name="CarrotsContainer" type="Node2D" parent="."]
+
+[node name="Carrot" parent="CarrotsContainer" instance=ExtResource("6_731ab")]
+position = Vector2(240, 144) 

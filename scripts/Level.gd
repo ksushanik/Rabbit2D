@@ -192,7 +192,7 @@ func start_rabbit_move(direction: Vector2i) -> void:
 	# Рассчитываем конечную точку скольжения кролика и СОХРАНЯЕМ РЕЗУЛЬТАТ
 	var start_pos = rabbit.grid_pos
 	last_move_calculation_result = calculate_slide_destination(start_pos, direction, rabbit) # <-- ИЗМЕНЕНО
-	var final_pos = last_move_calculation_result["final_pos"] # <-- ИЗМЕНЕНО
+	var final_pos = last_move_calculation_result["final_position"] # <-- ИЗМЕНЕНО
 
 	# Если кролик вообще должен сдвинуться
 	if final_pos != start_pos:
@@ -220,13 +220,13 @@ func _on_rabbit_move_finished() -> void:
 	var adjacent_scared_by_eating: bool = false # Флаг для испуганных соседей
 
 	if last_move_calculation_result.get("will_eat_carrot", false):
-		var carrot_to_eat: Node = last_move_calculation_result.get("stopped_by_carrot", null)
+		var carrot_to_eat: Node = last_move_calculation_result.get("carrot", null)
 		if is_instance_valid(carrot_to_eat):
 			# Вызываем eat_carrot и сохраняем результат (были ли напуганы соседи)
 			adjacent_scared_by_eating = eat_carrot(carrot_to_eat) 
 			eaten_carrot_this_turn = true # Сам факт поедания произошел
 		else:
-			printerr("Ошибка: will_eat_carrot=true, но stopped_by_carrot недействителен!")
+			printerr("Ошибка: will_eat_carrot=true, но carrot недействителен!")
 
 	# Проверка победы
 	if check_win_condition() and is_exit(final_grid_pos):
@@ -278,7 +278,7 @@ func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
 			
 			# Рассчитываем конечную точку скольжения ЗДЕСЬ
 			var calc_result = calculate_slide_destination(carrot_node.grid_pos, direction_away, carrot_node)
-			var final_carrot_pos = calc_result["final_pos"]
+			var final_carrot_pos = calc_result["final_position"]
 			
 			if carrot_node.has_method("scare_and_slide"):
 				# Передаем конечную точку в морковку
@@ -313,12 +313,17 @@ func world_to_grid(world_pos: Vector2) -> Vector2i:
 func grid_to_world(grid_pos: Vector2i) -> Vector2:
 	return Vector2(grid_pos) * tile_size + Vector2(tile_size, tile_size) / 2.0
 
-# Получает данные тайла по координатам сетки
-func get_tile_data(grid_pos: Vector2i) -> TileData:
-	if not ground_layer:
-		printerr("get_tile_data вызван до готовности ground_layer!")
-		return null
-	return ground_layer.get_cell_tile_data(0, grid_pos)
+# Вспомогательная функция для получения TileData из указанной позиции
+func get_tile_data(grid_pos: Vector2i, layer: int = 0) -> TileData:
+	var source_id = ground_layer.get_cell_source_id(layer, grid_pos)
+	
+	if source_id == -1:
+		return null # Нет тайла в этой позиции
+	
+	var atlas_coords = ground_layer.get_cell_atlas_coords(layer, grid_pos)
+	var alternative_tile = ground_layer.get_cell_alternative_tile(layer, grid_pos)
+	
+	return ground_layer.tile_set.get_source(source_id).get_tile_data(atlas_coords, alternative_tile)
 
 # Проверяет, блокируется ли движение из from_pos в to_pos частичной стеной.
 func _is_move_blocked_by_partial_wall(from_pos: Vector2i, to_pos: Vector2i) -> bool:
@@ -345,26 +350,22 @@ func _is_move_blocked_by_partial_wall(from_pos: Vector2i, to_pos: Vector2i) -> b
 		
 	return false # Движение не заблокировано частичной стеной
 
-# Проверяет, является ли клетка "сплошной стеной" (имеет физический коллайдер)
+# Проверяет, является ли клетка полноценной стеной
 func is_full_wall(grid_pos: Vector2i) -> bool:
-	var tile_data: TileData = get_tile_data(grid_pos)
-	if tile_data:
-		# Проверяем наличие полигонов столкновений на физическом слое 0 у тайла
-		return tile_data.get_collision_polygons_count(0) > 0
-	return false # Пустая клетка - не сплошная стена
+	var tile_data = get_tile_data(grid_pos)
+	if not tile_data:
+		return false
+		
+	return tile_data.get_collision_polygons_count(0) > 0
 
-# Проверяет, является ли клетка выходом (Норой) по Custom Data
+# Проверяет, является ли клетка выходом
 func is_exit(grid_pos: Vector2i) -> bool:
-	var tile_data: TileData = get_tile_data(grid_pos)
-	if tile_data:
-		# Ищем данные по имени "type" (с маленькой буквы)
-		var type_data = tile_data.get_custom_data("type") 
-		# print("is_exit: Проверка клетки %s. Получены данные тайла. Custom data 'type' = %s" % [grid_pos, type_data]) # DEBUG
-		return type_data == "exit"
-	else:
-		# print("is_exit: Проверка клетки %s. Данные тайла не найдены." % grid_pos) # DEBUG
-		pass # Добавлено для исправления ошибки линтера
-	return false
+	var tile_data = get_tile_data(grid_pos)
+	if not tile_data:
+		return false
+		
+	var exit_property = tile_data.get_custom_data("type")
+	return exit_property == "exit"
 
 # Получает данные о блокировках частичной стены из Custom Data
 func get_partial_wall_blocks(grid_pos: Vector2i) -> Dictionary:
@@ -415,71 +416,69 @@ func is_cell_vacant_for_carrot(grid_pos: Vector2i, asking_carrot: Node) -> bool:
 
 # Рассчитывает конечную точку скольжения для объекта (кролика или морковки).
 # Возвращает Dictionary: { 
-#   "final_pos": Vector2i,           # Конечная позиция объекта
-#   "stopped_by_carrot": Node,       # Узел морковки, перед которой остановились (или null)
-#   "will_eat_carrot": bool          # True, если кролик остановился прямо перед морковкой для поедания
+#   "final_position": Vector2i,           # Конечная позиция объекта
+#   "steps": int,                        # Количество шагов до столкновения
+#   "will_collide": bool,                 # True, если столкновение произошло
+#   "hit_wall": bool,                     # True, если столкновение произошло со стеной
+#   "hit_carrot": bool,                   # True, если столкновение произошло с морковкой
+#   "hit_map_edge": bool,                  # True, если столкновение произошло с краем карты
+#   "carrot": Node                        # Узел морковки, с которой столкнулся объект
 # }
 func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entity: Node = null) -> Dictionary:
 	var current_pos = start_pos
-	var is_rabbit = (entity == rabbit)
-	var hit_carrot = false
-	var hit_pos = current_pos
+	var next_pos = current_pos + direction
+	var steps = 0
 	var hit_wall = false
+	var hit_carrot = false
 	var hit_map_edge = false
-	var stopped_by_carrot = null  # Добавляем новую переменную
+	var collided_with: Node = null
 
-	while true:
-		var next_pos = current_pos + direction
+	while steps < 100: # Предотвращение бесконечного цикла
+		if not ground_layer.get_used_rect().has_point(next_pos):
+			hit_map_edge = true
+			break
 
-		# Проверка стен МЕЖДУ клетками
+		# Проверяем блокировку забором
+		if is_blocked_by_fence(current_pos, next_pos):
+			hit_wall = true
+			break
+
+		# Проверяем блокировку частичными стенами
 		if _is_move_blocked_by_partial_wall(current_pos, next_pos):
 			hit_wall = true
 			break
 
-		# Проверка сплошной стены
+		# Проверяем полную стену
 		if is_full_wall(next_pos):
 			hit_wall = true
 			break
 
-		# Проверка морковки
-		var carrot_in_next_pos = get_carrot_at(next_pos)
-		if is_rabbit:
-			if carrot_in_next_pos: # Кролик наткнулся на морковку
-				hit_carrot = true
-				hit_pos = current_pos
-				stopped_by_carrot = carrot_in_next_pos  # Сохраняем морковку
-				break
-		else: # Морковка наткнулась на ДРУГУЮ морковку
-			if carrot_in_next_pos != null and carrot_in_next_pos != entity:
-				hit_carrot = true
-				hit_pos = current_pos
-				break
-
-		# Проверка выхода
-		if is_rabbit and is_exit(next_pos) and carrots_remaining <= 0:
-			current_pos = next_pos
+		# Проверяем коллизию с морковками
+		var carrot_at_next = get_carrot_at(next_pos)
+		if carrot_at_next != null and carrot_at_next != entity:
+			hit_carrot = true
+			collided_with = carrot_at_next
 			break
 
-		# Перемещение
+		# Если нет коллизий, двигаемся дальше
 		current_pos = next_pos
-		
-		# Аварийный выход
-		if abs(current_pos.x) > 1000 or abs(current_pos.y) > 1000:
+		next_pos = current_pos + direction
+		steps += 1
+
+		# Для отладки
+		if steps >= 99:
 			printerr("Возможен бесконечный цикл в calculate_slide_destination?")
 			break
-
-	var will_eat_carrot = is_rabbit and hit_carrot  # Если кролик и встретил морковку
-
-	var result = {
-		"final_pos": current_pos,
-		"hit_carrot": hit_carrot,
-		"hit_pos": hit_pos,
-		"will_collide": (hit_wall or hit_carrot or hit_map_edge),
-		"will_eat_carrot": will_eat_carrot,  # Добавляем в результат
-		"stopped_by_carrot": stopped_by_carrot  # Добавляем в результат
-	}
 	
-	return result
+	return {
+		"final_position": current_pos,
+		"steps": steps,
+		"will_collide": (hit_wall or hit_carrot or hit_map_edge),
+		"hit_wall": hit_wall,
+		"hit_carrot": hit_carrot,
+		"hit_map_edge": hit_map_edge,
+		"carrot": collided_with
+	}
 
 
 # Обработка поедания морковки
@@ -509,7 +508,7 @@ func eat_carrot(carrot_node: Node) -> bool:
 					var direction_away: Vector2i = offset # Направление от съеденной морковки
 					# Рассчитываем, может ли она вообще сдвинуться
 					var calc_result: Dictionary = calculate_slide_destination(adjacent_carrot.grid_pos, direction_away, adjacent_carrot)
-					var final_carrot_pos: Vector2i = calc_result["final_pos"]
+					var final_carrot_pos: Vector2i = calc_result["final_position"]
 					# Если может сдвинуться, добавляем в список для испуга
 					if final_carrot_pos != adjacent_carrot.grid_pos:
 						scared_by_eating_list.append({"carrot": adjacent_carrot, "direction": direction_away, "final_pos": final_carrot_pos})
@@ -570,3 +569,51 @@ func restart_level() -> void:
 # func _process(delta):
 # 	if Input.is_action_just_pressed("restart"): # Нужно добавить действие "restart" в Input Map
 # 		restart_level() 
+
+# Проверяет, блокирует ли забор движение из from_pos в to_pos
+func is_blocked_by_fence(from_pos: Vector2i, to_pos: Vector2i) -> bool:
+	var direction = to_pos - from_pos
+	if direction.length_squared() != 1: # Убедимся, что это соседние клетки
+		printerr("Ошибка в is_blocked_by_fence: Позиции не соседние!")
+		return true # Считаем заблокированным на всякий случай
+	
+	# Проверяем блокировку по направлению
+	var tile_data: TileData = get_tile_data(from_pos)
+	if tile_data:
+		var blocks = tile_data.get_custom_data("fence_blocks")
+		if blocks is Dictionary:
+			# Проверяем блокировку в направлении движения
+			if direction == Vector2i.RIGHT and blocks.get("east", false): return true
+			if direction == Vector2i.LEFT and blocks.get("west", false): return true
+			if direction == Vector2i.DOWN and blocks.get("south", false): return true
+			if direction == Vector2i.UP and blocks.get("north", false): return true
+	
+	# Проверяем блокировку с обратной стороны
+	tile_data = get_tile_data(to_pos)
+	if tile_data:
+		var blocks = tile_data.get_custom_data("fence_blocks")
+		if blocks is Dictionary:
+			# Проверяем блокировку с обратной стороны
+			if direction == Vector2i.RIGHT and blocks.get("west", false): return true
+			if direction == Vector2i.LEFT and blocks.get("east", false): return true
+			if direction == Vector2i.DOWN and blocks.get("north", false): return true
+			if direction == Vector2i.UP and blocks.get("south", false): return true
+	
+	return false # Если не нашли блокировок - движение разрешено
+
+func _handle_rabbit_move_finished(rabbit_final_pos: Vector2i) -> void:
+	# Изменяем grid_pos кролика в соответствии с финальной позицией
+	rabbit.grid_pos = rabbit_final_pos
+
+	# Проверка на поедание морковки, если кролик столкнулся с ней
+	var adjacent_scared_by_eating = []
+	var eaten_carrot_this_turn = false
+	
+	if last_move_calculation_result.get("hit_carrot", false):
+		var carrot_to_eat: Node = last_move_calculation_result.get("carrot", null)
+		if is_instance_valid(carrot_to_eat):
+			# Вызываем eat_carrot и сохраняем результат (были ли напуганы соседи)
+			adjacent_scared_by_eating = eat_carrot(carrot_to_eat) 
+			eaten_carrot_this_turn = true # Сам факт поедания произошел
+		else:
+			printerr("Ошибка: hit_carrot=true, но carrot недействителен!")
