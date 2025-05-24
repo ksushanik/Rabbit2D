@@ -1,7 +1,7 @@
 [gd_scene load_steps=6 format=3 uid="uid://cu4u8g2k2w3j3"]
 
 [ext_resource type="Script" path="res://scripts/Level.gd" id="1_ayqoi"]
-[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://assets/tilemap/world.tres" id="1_l85ty"]
+[ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="1_l85ty"]
 [ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_hudsc"]
 [ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="2_xxbm3"]
 [ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="3_ei154"]
@@ -20,6 +20,7 @@ layer_0/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 0, 131072, 1, 0, 196608,
 
 [node name="Rabbit" parent="." instance=ExtResource("3_ei154")]
 position = Vector2(96, 160)
+scale = Vector2(2, 2)
 
 [node name="CarrotsContainer" type="Node2D" parent="."]
 

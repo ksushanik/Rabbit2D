@@ -3,7 +3,7 @@ extends Node2D
 ## Скрипт для управления основной логикой уровня.
 
 # Экспортируемая переменная для легкой настройки размера тайла из редактора.
-@export var tile_size: int = 64
+@export var tile_size: int = 32
 # Экспортируемая переменная для ссылки на сцену следующего уровня.
 # @export var next_level_scene: PackedScene = null
 
@@ -61,11 +61,11 @@ func _ready() -> void:
 		var map_rect = ground_layer.get_used_rect()
 		var map_center_local = map_rect.get_center()
 		camera.position = ground_layer.map_to_local(map_center_local)
-		camera.zoom = Vector2(1, 1) # <-- Устанавливаем зум 1:1
+		camera.zoom = Vector2(2.0, 2.0) # <-- Устанавливаем зум 2.0 для увеличения масштаба (компенсация уменьшенных тайлов)
 	else:
 		print("Найдена существующая Camera2D.")
-	# Если камера уже есть, можно тоже принудительно установить зум?
-	# camera.zoom = Vector2(1, 1) # Раскомментируй, если нужно переопределять зум существующей камеры
+	# Если камера уже есть, принудительно устанавливаем зум
+	camera.zoom = Vector2(2.0, 2.0) # Увеличиваем масштаб вдвое
 	
 	# Активируем камеру (делаем текущей)
 	camera.enabled = true 
@@ -215,15 +215,6 @@ func _on_rabbit_move_finished() -> void:
 		
 	var final_grid_pos: Vector2i = world_to_grid(rabbit.position)
 	rabbit.grid_pos = final_grid_pos
-	
-	# Проверка на яму - если кролик оказался на яме, игра окончена
-	if is_pit(final_grid_pos):
-		# Если у кролика есть функция падения в яму, вызываем её
-		if rabbit.has_method("fall_into_pit"):
-			rabbit.fall_into_pit()
-		# Вызываем game_over
-		game_over()
-		return
 	
 	var eaten_carrot_this_turn: bool = false
 	var adjacent_scared_by_eating: bool = false # Флаг для испуганных соседей
@@ -375,15 +366,6 @@ func is_exit(grid_pos: Vector2i) -> bool:
 		pass # Добавлено для исправления ошибки линтера
 	return false
 
-# Проверяет, является ли клетка ямой по Custom Data
-func is_pit(grid_pos: Vector2i) -> bool:
-	var tile_data: TileData = get_tile_data(grid_pos)
-	if tile_data:
-		# Ищем данные по имени "type" (с маленькой буквы)
-		var type_data = tile_data.get_custom_data("type")
-		return type_data == "pit"
-	return false
-
 # Получает данные о блокировках частичной стены из Custom Data
 func get_partial_wall_blocks(grid_pos: Vector2i) -> Dictionary:
 	var tile_data: TileData = get_tile_data(grid_pos)
@@ -432,6 +414,11 @@ func is_cell_vacant_for_carrot(grid_pos: Vector2i, asking_carrot: Node) -> bool:
 	return true
 
 # Рассчитывает конечную точку скольжения для объекта (кролика или морковки).
+# Возвращает Dictionary: { 
+#   "final_pos": Vector2i,           # Конечная позиция объекта
+#   "stopped_by_carrot": Node,       # Узел морковки, перед которой остановились (или null)
+#   "will_eat_carrot": bool          # True, если кролик остановился прямо перед морковкой для поедания
+# }
 func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entity: Node = null) -> Dictionary:
 	var current_pos = start_pos
 	var is_rabbit = (entity == rabbit)
@@ -440,8 +427,6 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 	var hit_wall = false
 	var hit_map_edge = false
 	var stopped_by_carrot = null  # Добавляем новую переменную
-	var found_pit = false         # Флаг для обнаружения ямы
-	var pit_pos = Vector2i.ZERO   # Позиция обнаруженной ямы
 
 	while true:
 		var next_pos = current_pos + direction
@@ -455,18 +440,6 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 		if is_full_wall(next_pos):
 			hit_wall = true
 			break
-			
-		# Проверка ямы (только для кролика)
-		if is_rabbit and is_pit(next_pos):
-			found_pit = true
-			pit_pos = next_pos
-			current_pos = next_pos  # Кролик попадает на клетку с ямой
-			break
-		# Если это морковка и на пути яма - морковка перескакивает через яму
-		elif not is_rabbit and is_pit(next_pos):
-			# Морковка просто "перепрыгивает" через яму и продолжает движение
-			current_pos = next_pos
-			continue
 
 		# Проверка морковки
 		var carrot_in_next_pos = get_carrot_at(next_pos)
@@ -503,9 +476,7 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 		"hit_pos": hit_pos,
 		"will_collide": (hit_wall or hit_carrot or hit_map_edge),
 		"will_eat_carrot": will_eat_carrot,  # Добавляем в результат
-		"stopped_by_carrot": stopped_by_carrot,  # Добавляем в результат
-		"found_pit": found_pit,  # Добавляем проверку на яму
-		"pit_pos": pit_pos  # Позиция ямы для дополнительной обработки
+		"stopped_by_carrot": stopped_by_carrot  # Добавляем в результат
 	}
 	
 	return result
@@ -599,27 +570,3 @@ func restart_level() -> void:
 # func _process(delta):
 # 	if Input.is_action_just_pressed("restart"): # Нужно добавить действие "restart" в Input Map
 # 		restart_level() 
-
-# Функция Game Over - вызывается при проваливании кролика в яму
-func game_over() -> void:
-	print("GAME OVER! Кролик провалился в яму.")
-	
-	# Блокировка ввода
-	current_state = State.PROCESSING_MOVE
-	
-	# Отложенный вызов, чтобы дать анимациям завершиться
-	await get_tree().create_timer(1.0).timeout
-	
-	# Показ экрана Game Over
-	var game_over_scene = load("res://scenes/UI/GameOverScreen.tscn")
-	if game_over_scene:
-		var game_over_instance = game_over_scene.instantiate()
-		# Устанавливаем тип экрана как LOSE
-		game_over_instance.set_meta("screen_type", 1) # 1 = ScreenType.LOSE
-		
-		# Добавляем экран на сцену
-		get_tree().root.add_child(game_over_instance)
-	else:
-		printerr("Game Over: не удалось загрузить экран GameOverScreen!")
-		# Здесь можно добавить запасной вариант (просто перезапуск уровня)
-		restart_level() 

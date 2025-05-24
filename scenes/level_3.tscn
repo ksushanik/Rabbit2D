@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/Level.gd" id="1_pc55h"]
 [ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_4osri"]
-[ext_resource type="TileSet" uid="uid://c7tqre1fkf5pn" path="res://assets/tilemap/world.tres" id="2_ipuvy"]
+[ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="2_ipuvy"]
 [ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="3_nkaj2"]
 [ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="4_tokb0"]
 
