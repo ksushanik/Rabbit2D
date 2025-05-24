@@ -37,13 +37,10 @@ const DIRECTION_TO_ANIMATION = {
 @export var move_sound_path: String = ""
 # Звук столкновения
 @export var collision_sound_path: String = ""
-# Звук падения в яму
-@export var pit_fall_sound_path: String = ""
 
 # Плееры для звуков
 var _move_sound_player: AudioStreamPlayer = null
 var _collision_sound_player: AudioStreamPlayer = null
-var _pit_fall_sound_player: AudioStreamPlayer = null
 
 
 func _ready() -> void:
@@ -70,18 +67,6 @@ func _ready() -> void:
 			add_child(_collision_sound_player)
 		else:
 			printerr("Rabbit.gd: Не удалось загрузить звук столкновения: ", collision_sound_path)
-
-	# Создаем плеер для звука падения в яму
-	if not pit_fall_sound_path.is_empty():
-		var sound = load(pit_fall_sound_path)
-		if sound is AudioStream:
-			_pit_fall_sound_player = AudioStreamPlayer.new()
-			_pit_fall_sound_player.stream = sound
-			_pit_fall_sound_player.name = "PitFallSoundPlayer"
-			_pit_fall_sound_player.volume_db = -3.0
-			add_child(_pit_fall_sound_player)
-		else:
-			printerr("Rabbit.gd: Не удалось загрузить звук падения в яму: ", pit_fall_sound_path)
 
 	# Начальная анимация
 	if sprite is AnimatedSprite2D:
@@ -197,6 +182,11 @@ func _on_tween_finished() -> void:
 
 # Обработчик завершения анимации
 func _on_animation_finished() -> void:
+	# Если закончилась анимация падения в яму - ничего не делаем, т.к. перезапуск будет обработан в Level.gd
+	if sprite.animation.begins_with("fall_into_pit_"):
+		print("Завершилась анимация падения в яму: ", sprite.animation)
+		return
+		
 	# Если закончилась анимация столкновения
 	if sprite.animation.begins_with("collision_"):
 		print("Завершилась анимация столкновения: ", sprite.animation)
@@ -223,29 +213,3 @@ func _on_animation_finished() -> void:
 		
 		# Сообщаем об окончании движения
 		emit_signal("move_finished")
-
-
-# Анимация падения кролика в яму
-func fall_into_pit() -> void:
-	print("Кролик проваливается в яму!")
-	is_moving = true # Блокируем управление
-	
-	# Проигрываем звук падения в яму, если есть
-	if is_instance_valid(_pit_fall_sound_player) and not _pit_fall_sound_player.playing:
-		_pit_fall_sound_player.play()
-		
-	# Анимация вращения и уменьшения
-	var tween = create_tween()
-	tween.set_parallel(true) # Параллельные анимации
-	
-	# Вращение
-	tween.tween_property(self, "rotation", PI * 2, 0.6).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	
-	# Уменьшение размера (исчезновение в яме)
-	tween.tween_property(sprite, "scale", Vector2.ZERO, 0.5).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
-	
-	# Небольшое затемнение
-	tween.tween_property(sprite, "modulate", Color(0.5, 0.5, 0.5), 0.5)
-	
-	# Небольшой сдвиг вниз (эффект проваливания)
-	tween.tween_property(sprite, "position", sprite.position + Vector2(0, 15), 0.6).set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_IN)

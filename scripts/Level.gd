@@ -422,6 +422,7 @@ func is_cell_vacant_for_carrot(grid_pos: Vector2i, asking_carrot: Node) -> bool:
 #   "hit_wall": bool,                     # True, если столкновение произошло со стеной
 #   "hit_carrot": bool,                   # True, если столкновение произошло с морковкой
 #   "hit_map_edge": bool,                  # True, если столкновение произошло с краем карты
+#   "hit_pit": bool,                      # True, если столкновение произошло с ямой
 #   "carrot": Node                        # Узел морковки, с которой столкнулся объект
 # }
 func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entity: Node = null) -> Dictionary:
@@ -431,6 +432,7 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 	var hit_wall = false
 	var hit_carrot = false
 	var hit_map_edge = false
+	var hit_pit = false
 	var collided_with: Node = null
 
 	while steps < 100: # Предотвращение бесконечного цикла
@@ -451,6 +453,13 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 		# Проверяем полную стену
 		if is_full_wall(next_pos):
 			hit_wall = true
+			break
+			
+		# Проверяем яму (для кролика это конец движения)
+		if is_pit(next_pos) and entity is Rabbit:
+			hit_pit = true
+			# Для ямы мы ПЕРЕМЕЩАЕМСЯ на неё, а не останавливаемся перед ней
+			current_pos = next_pos
 			break
 
 		# Проверяем коллизию с морковками
@@ -473,10 +482,11 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 	return {
 		"final_position": current_pos,
 		"steps": steps,
-		"will_collide": (hit_wall or hit_carrot or hit_map_edge),
+		"will_collide": (hit_wall or hit_carrot or hit_map_edge or hit_pit),
 		"hit_wall": hit_wall,
 		"hit_carrot": hit_carrot,
 		"hit_map_edge": hit_map_edge,
+		"hit_pit": hit_pit,
 		"carrot": collided_with
 	}
 
@@ -604,7 +614,31 @@ func is_blocked_by_fence(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 func _handle_rabbit_move_finished(rabbit_final_pos: Vector2i) -> void:
 	# Изменяем grid_pos кролика в соответствии с финальной позицией
 	rabbit.grid_pos = rabbit_final_pos
-
+	
+	# Проверяем, попал ли кролик в яму
+	if last_move_calculation_result.get("hit_pit", false):
+		print("Кролик упал в яму!")
+		# Определяем направление движения для выбора правильной анимации
+		var dir_name = "down"  # По умолчанию
+		
+		# Используем last_rabbit_direction для определения направления
+		if last_rabbit_direction == Vector2i.RIGHT:
+			dir_name = "right"
+		elif last_rabbit_direction == Vector2i.LEFT:
+			dir_name = "left"
+		elif last_rabbit_direction == Vector2i.DOWN:
+			dir_name = "down"
+		elif last_rabbit_direction == Vector2i.UP:
+			dir_name = "up"
+			
+		# Запускаем анимацию падения в выбранном направлении
+		rabbit.play_animation("fall_into_pit_" + dir_name)
+		
+		# Через небольшую задержку перезапускаем уровень
+		await get_tree().create_timer(1.5).timeout
+		restart_level()
+		return
+		
 	# Проверка на поедание морковки, если кролик столкнулся с ней
 	var adjacent_scared_by_eating = []
 	var eaten_carrot_this_turn = false
@@ -617,3 +651,12 @@ func _handle_rabbit_move_finished(rabbit_final_pos: Vector2i) -> void:
 			eaten_carrot_this_turn = true # Сам факт поедания произошел
 		else:
 			printerr("Ошибка: hit_carrot=true, но carrot недействителен!")
+
+# Проверяет, является ли клетка ямой
+func is_pit(grid_pos: Vector2i) -> bool:
+	var tile_data = get_tile_data(grid_pos)
+	if not tile_data:
+		return false
+		
+	var tile_type = tile_data.get_custom_data("type")
+	return tile_type == "pit"
