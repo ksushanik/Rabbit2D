@@ -24,6 +24,7 @@ var current_level_index: int = -1
 func _ready() -> void:
 	# Показываем главное меню при запуске игры
 	if current_level_index == -1:
+		await get_tree().process_frame
 		show_main_menu()
 
 
@@ -92,11 +93,15 @@ func get_current_level_number() -> int:
 
 # Показывает главное меню
 func show_main_menu() -> void:
+	print("GameManager: Попытка загрузки главного меню...")
 	var error = get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn")
 	if error != OK:
 		printerr("Ошибка загрузки главного меню. Код ошибки: ", error)
+		print("GameManager: Fallback - загружаем первый уровень...")
 		# Fallback - загружаем первый уровень
 		load_level_by_index(0)
+	else:
+		print("GameManager: Главное меню загружено успешно!")
 
 # Можно добавить другие функции, например, для возврата в главное меню,
 # сохранения/загрузки прогресса и т.д. 

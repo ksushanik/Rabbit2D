@@ -1,12 +1,14 @@
 [gd_scene load_steps=2 format=3 uid="uid://main_menu"]
 
 [ext_resource type="Script" path="res://scripts/MainMenu.gd" id="1_main_menu"]
+[ext_resource type="Theme" uid="uid://bqxvxb8qkw7ys" path="res://assets/Fonts/pixel_theme.tres" id="2_pixel_theme"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource("2_pixel_theme")
 script = ExtResource("1_main_menu")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -14,40 +16,65 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.1, 0.2, 0.3, 1)
+color = Color(0.8, 0.7, 0.6, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -150.0
-offset_top = -150.0
-offset_right = 150.0
-offset_bottom = 150.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 
-[node name="Title" type="Label" parent="VBoxContainer"]
+[node name="MenuPanel" type="Panel" parent="CenterContainer"]
 layout_mode = 2
-text = "Rabbit2D"
+custom_minimum_size = Vector2(400, 500)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/MenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="Title" type="Label" parent="CenterContainer/MenuPanel/VBoxContainer"]
+layout_mode = 2
+text = "🐰 RABBIT2D 🥕"
+theme_override_font_sizes/font_size = 32
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+[node name="Spacer1" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
 
-[node name="StartGameButton" type="Button" parent="VBoxContainer"]
+[node name="StartGameButton" type="Button" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
-text = "Начать игру"
+custom_minimum_size = Vector2(0, 50)
+text = "🎮 Начать игру"
+theme_override_font_sizes/font_size = 18
 
-[node name="LevelSelectButton" type="Button" parent="VBoxContainer"]
+[node name="Spacer2" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
-text = "Выбор уровня"
+custom_minimum_size = Vector2(0, 10)
 
-[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+[node name="LevelSelectButton" type="Button" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+text = "📋 Выбор уровня"
+theme_override_font_sizes/font_size = 18
 
-[node name="QuitButton" type="Button" parent="VBoxContainer"]
+[node name="Spacer3" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
-text = "Выход" 
+custom_minimum_size = Vector2(0, 10)
+
+[node name="QuitButton" type="Button" parent="CenterContainer/MenuPanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+text = "🚪 Выход"
+theme_override_font_sizes/font_size = 18
+
+[node name="Spacer4" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3 

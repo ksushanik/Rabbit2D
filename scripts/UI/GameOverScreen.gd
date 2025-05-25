@@ -1,15 +1,12 @@
 extends CanvasLayer
 
-# Ссылки на кнопки
-@onready var play_again_button: Button = $CenterContainer/VBoxContainer/PlayAgainButton
-@onready var main_menu_button: Button = $CenterContainer/VBoxContainer/MainMenuButton
-@onready var quit_button: Button = $CenterContainer/VBoxContainer/QuitButton
+@onready var play_again_button: Button = $CenterContainer/WinPanel/VBoxContainer/PlayAgainButton
+@onready var main_menu_button: Button = $CenterContainer/WinPanel/VBoxContainer/MainMenuButton
+@onready var quit_button: Button = $CenterContainer/WinPanel/VBoxContainer/QuitButton
 
 func _ready() -> void:
-	# Устанавливаем режим обработки, чтобы UI работал на паузе
 	self.process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	# Подключаем сигналы кнопок при готовности узла
 	if play_again_button:
 		play_again_button.pressed.connect(_on_play_again_button_pressed)
 	else:
@@ -25,21 +22,16 @@ func _ready() -> void:
 	else:
 		printerr("GameOverScreen: Кнопка QuitButton не найдена!")
 		
-	# Ставим фокус на одну из кнопок для управления с клавиатуры/геймпада
 	if play_again_button:
 		play_again_button.grab_focus()
 		
-	# Паузим игру под экраном победы
 	get_tree().paused = true
 
-# Вызывается при нажатии кнопки "Играть снова"
 func _on_play_again_button_pressed() -> void:
-	# Снимаем паузу перед перезапуском
 	get_tree().paused = false
 	
 	var game_manager = get_node("/root/GameManager")
 	if game_manager:
-		# Убедимся, что метод существует, на всякий случай
 		if game_manager.has_method("load_level_by_index"):
 			game_manager.load_level_by_index(0)
 		else:
@@ -47,26 +39,19 @@ func _on_play_again_button_pressed() -> void:
 	else:
 		printerr("GameOverScreen: Не удалось найти GameManager!")
 		
-	# Удаляем сам экран победы (отложенный вызов)
 	call_deferred("queue_free")
 
-# Вызывается при нажатии кнопки "Главное меню"
 func _on_main_menu_button_pressed() -> void:
-	# Снимаем паузу перед переходом
 	get_tree().paused = false
 	
 	var game_manager = get_node("/root/GameManager")
 	if game_manager and game_manager.has_method("show_main_menu"):
 		game_manager.show_main_menu()
 	else:
-		# Fallback - загружаем главное меню напрямую
 		get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn")
 		
-	# Удаляем сам экран победы (отложенный вызов)
 	call_deferred("queue_free")
 
-# Вызывается при нажатии кнопки "Выйти"
 func _on_quit_button_pressed() -> void:
-	# Снимаем паузу перед выходом
 	get_tree().paused = false
 	get_tree().quit() 

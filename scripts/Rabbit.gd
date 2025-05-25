@@ -42,9 +42,11 @@ const DIRECTION_TO_ANIMATION = {
 var _move_sound_player: AudioStreamPlayer = null
 var _collision_sound_player: AudioStreamPlayer = null
 
-
 func _ready() -> void:
-	# Создаем плеер для звука движения
+	_setup_sound_players()
+	_setup_sprite()
+
+func _setup_sound_players() -> void:
 	if not move_sound_path.is_empty():
 		var sound = load(move_sound_path)
 		if sound is AudioStream:
@@ -56,7 +58,6 @@ func _ready() -> void:
 		else:
 			printerr("Rabbit.gd: Не удалось загрузить звук движения: ", move_sound_path)
 
-	# Создаем плеер для звука столкновения
 	if not collision_sound_path.is_empty():
 		var sound = load(collision_sound_path)
 		if sound is AudioStream:
@@ -68,11 +69,10 @@ func _ready() -> void:
 		else:
 			printerr("Rabbit.gd: Не удалось загрузить звук столкновения: ", collision_sound_path)
 
-	# Начальная анимация
+func _setup_sprite() -> void:
 	if sprite is AnimatedSprite2D:
-		# Перечисляем все доступные анимации для отладки
-		print("Доступные анимации: ", sprite.sprite_frames.get_animation_names())
-		# Проверяем, есть ли нужные анимации
+		sprite.visible = true
+		
 		var required_anims = ["idle_down", "idle_up", "idle_left", "idle_right", 
 			"move_down", "move_up", "move_left", "move_right",
 			"collision_down", "collision_up", "collision_left", "collision_right"]
@@ -84,132 +84,94 @@ func _ready() -> void:
 		if missing_anims.size() > 0:
 			printerr("Отсутствуют анимации: ", missing_anims)
 		
-		# Запускаем начальную анимацию
 		play_animation("idle_down")
 		
-		# Подключаем сигнал завершения анимации
 		if not sprite.animation_finished.is_connected(_on_animation_finished):
-			print("Подключаем сигнал animation_finished")
 			sprite.animation_finished.connect(_on_animation_finished)
-		else:
-			print("Сигнал animation_finished уже подключен")
-
 
 func initialize(level_tile_size: int) -> void:
 	tile_size = level_tile_size
-
 
 func set_grid_position(new_grid_pos: Vector2i) -> void:
 	grid_pos = new_grid_pos
 	position = Vector2(new_grid_pos) * tile_size + Vector2(tile_size, tile_size) / 2.0
 
+# Скрывает кролика (например, когда его съела лиса)
+func hide_rabbit() -> void:
+	if sprite:
+		sprite.visible = false
 
-# Проверка для определения нужно ли играть анимацию столкновения
-# Level.gd должен передавать этот флаг при вызове animate_move
+func show_rabbit() -> void:
+	if sprite:
+		sprite.visible = true
+
 func animate_move(target_world_position: Vector2, duration: float, will_collide: bool = false) -> void:
 	if is_moving:
 		return
 
-	# Определяем направление движения
 	var move_direction = (target_world_position - position).normalized()
-	var direction_name = "down" # По умолчанию
+	var direction_name = "down"
 	
-	# Определяем направление по вектору движения
 	if abs(move_direction.x) > abs(move_direction.y):
-		# Горизонтальное движение
 		current_direction = Vector2i.RIGHT if move_direction.x > 0 else Vector2i.LEFT
 		direction_name = "right" if move_direction.x > 0 else "left"
 	else:
-		# Вертикальное движение
 		current_direction = Vector2i.DOWN if move_direction.y > 0 else Vector2i.UP
 		direction_name = "down" if move_direction.y > 0 else "up"
 	
-	# Воспроизводим анимацию движения
 	play_animation("move_" + direction_name)
 	
-	# Воспроизводим звук движения
 	if is_instance_valid(_move_sound_player) and not _move_sound_player.playing:
 		_move_sound_player.play()
 
 	is_moving = true
-	# Сохраняем информацию о том, будет ли столкновение в конце движения
 	is_colliding = will_collide
 	
 	var tween: Tween = create_tween()
 	tween.tween_property(self, "position", target_world_position, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tween.finished.connect(_on_tween_finished)
 
-
-# Метод для проигрывания анимации с улучшенной отладкой
 func play_animation(anim_name: String) -> void:
 	if sprite is AnimatedSprite2D:
-		print("Запуск анимации: " + anim_name)
 		if sprite.sprite_frames.has_animation(anim_name):
 			sprite.play(anim_name)
 		else:
 			push_error("Анимация не найдена: " + anim_name)
-			# Аварийный вариант - используем дефолтную анимацию
 			if sprite.sprite_frames.has_animation("idle_down"):
 				sprite.play("idle_down")
-				print("Вместо этого включена idle_down")
 			elif sprite.sprite_frames.has_animation("move_down"):
 				sprite.play("move_down")
-				print("Вместо этого включена move_down")
 
-
-# Вызывается при окончании движения (tween закончился)
 func _on_tween_finished() -> void:
 	is_moving = false
 	
-	# Если было столкновение - проигрываем анимацию столкновения
 	if is_colliding:
 		var dir_name = DIRECTION_TO_ANIMATION.get(current_direction, "down")
 		var collision_anim = "collision_" + dir_name
-		print("Запускаю анимацию столкновения: " + collision_anim)
 		play_animation(collision_anim)
 		
-		# Воспроизводим звук столкновения
 		if is_instance_valid(_collision_sound_player) and not _collision_sound_player.playing:
 			_collision_sound_player.play()
 	else:
-		# Если не было столкновения - переходим в idle
 		var dir_name = DIRECTION_TO_ANIMATION.get(current_direction, "down") 
 		var idle_anim = "idle_" + dir_name
-		print("Запускаю анимацию покоя: " + idle_anim)
 		play_animation(idle_anim)
 		emit_signal("move_finished")
 
-
-# Обработчик завершения анимации
 func _on_animation_finished() -> void:
-	# Если закончилась анимация падения в яму - ничего не делаем, т.к. перезапуск будет обработан в Level.gd
 	if sprite.animation.begins_with("fall_into_pit_"):
-		print("Завершилась анимация падения в яму: ", sprite.animation)
 		return
 		
-	# Если закончилась анимация столкновения
 	if sprite.animation.begins_with("collision_"):
-		print("Завершилась анимация столкновения: ", sprite.animation)
-		# Явно получаем имя направления из имени анимации
 		var direction_part = sprite.animation.split("_")[1]
 		
-		# Проверяем направление и корректируем его, если необходимо
-		# Когда кролик ударяется о стену, он должен смотреть в ту же сторону
 		var idle_anim
 		if direction_part == "left" or direction_part == "right":
-			# Используем сохраненное направление вместо извлечения из имени анимации
 			var dir_name = DIRECTION_TO_ANIMATION.get(current_direction, "down")
 			idle_anim = "idle_" + dir_name
-			print("Корректирую направление после столкновения, используем направление: " + dir_name)
 		else:
-			# Для up/down используем направление из названия анимации
 			idle_anim = "idle_" + direction_part
 		
-		print("После столкновения играем: " + idle_anim)
 		play_animation(idle_anim)
-		
-		# Сбрасываем флаг столкновения
 		is_colliding = false
-		
-		# Сообщаем об окончании движения
 		emit_signal("move_finished")

@@ -1,12 +1,14 @@
 [gd_scene load_steps=2 format=3 uid="uid://level_select_menu"]
 
 [ext_resource type="Script" path="res://scripts/LevelSelectMenu.gd" id="1_level_select"]
+[ext_resource type="Theme" uid="uid://bqxvxb8qkw7ys" path="res://assets/Fonts/pixel_theme.tres" id="2_pixel_theme"]
 
 [node name="LevelSelectMenu" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+theme = ExtResource("2_pixel_theme")
 script = ExtResource("1_level_select")
 
 [node name="Background" type="ColorRect" parent="."]
@@ -14,42 +16,55 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.2, 0.3, 0.4, 1)
+color = Color(0.8, 0.7, 0.6, 1)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="."]
+[node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -200.0
-offset_top = -250.0
-offset_right = 200.0
-offset_bottom = 250.0
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 
-[node name="Title" type="Label" parent="VBoxContainer"]
+[node name="MenuPanel" type="Panel" parent="CenterContainer"]
 layout_mode = 2
-text = "Выбор уровня"
+custom_minimum_size = Vector2(600, 700)
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/MenuPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="Title" type="Label" parent="CenterContainer/MenuPanel/VBoxContainer"]
+layout_mode = 2
+text = "🎯 ВЫБОР УРОВНЯ 🎯"
+theme_override_font_sizes/font_size = 28
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="VBoxContainer"]
+[node name="Spacer1" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
 
-[node name="ScrollContainer" type="ScrollContainer" parent="VBoxContainer"]
+[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="LevelsGrid" type="GridContainer" parent="VBoxContainer/ScrollContainer"]
+[node name="LevelsGrid" type="GridContainer" parent="CenterContainer/MenuPanel/VBoxContainer/ScrollContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 4
 
-[node name="HSeparator2" type="HSeparator" parent="VBoxContainer"]
+[node name="Spacer2" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
 
-[node name="BackButton" type="Button" parent="VBoxContainer"]
+[node name="BackButton" type="Button" parent="CenterContainer/MenuPanel/VBoxContainer"]
 layout_mode = 2
-text = "Назад в главное меню" 
+custom_minimum_size = Vector2(0, 50)
+text = "⬅️ Назад в главное меню"
+theme_override_font_sizes/font_size = 16 

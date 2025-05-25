@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://dwtwvw3676ut2"]
+[gd_scene load_steps=6 format=3 uid="uid://ckq83slykcc6u"]
 
 [ext_resource type="Script" path="res://scripts/Level.gd" id="1_nlkdq"]
 [ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_mr5ql"]
@@ -6,10 +6,9 @@
 [ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="3_bk0qa"]
 [ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="6_731ab"]
 
-[node name="FenceTestLevel" type="Node2D" node_paths=PackedStringArray("ground_layer", "carrots_container", "rabbit")]
+[node name="FenceTestLevel" type="Node2D" node_paths=PackedStringArray("ground_layer", "rabbit")]
 script = ExtResource("1_nlkdq")
 ground_layer = NodePath("Ground")
-carrots_container = NodePath("CarrotsContainer")
 rabbit = NodePath("Rabbit")
 hud_scene = ExtResource("2_mr5ql")
 

@@ -93,13 +93,13 @@ func scare_and_slide(final_grid_pos: Vector2i, level: Node) -> void:
 		if is_instance_valid(_move_sound_player) and not _move_sound_player.playing:
 			_move_sound_player.play()
 		
-		print("Морковка %s скользит из %s в %s" % [name, grid_pos, final_grid_pos])
+
 		var target_world_pos: Vector2 = Vector2(final_grid_pos) * tile_size + Vector2(tile_size, tile_size) / 2.0
 		animate_move(target_world_pos, scare_move_duration, level) # Передаем level для колбэка
 	else:
 		# Если морковка не может сдвинуться (конечная точка совпадает с текущей), 
 		# все равно нужно сообщить Level, что ее "обработка" завершена.
-		# print("Морковка %s не может сдвинуться (уже в конечной точке %s)" % [name, grid_pos]) # DEBUG
+
 		emit_signal("move_finished")
 
 
@@ -122,7 +122,7 @@ func play_idle_animation() -> void:
 		if animated_sprite.sprite_frames.has_animation("idle"):
 			animated_sprite.play("idle")
 		else:
-			print("Анимация 'idle' не найдена в SpriteFrames")
+			printerr("Анимация 'idle' не найдена в SpriteFrames")
 
 
 # Проигрывает анимацию исчезновения под землю (мышка утаскивает)
@@ -131,7 +131,7 @@ func play_disappear_animation() -> void:
 		if animated_sprite.sprite_frames.has_animation("disappear"):
 			animated_sprite.play("disappear")
 		else:
-			print("Анимация 'disappear' не найдена в SpriteFrames")
+			printerr("Анимация 'disappear' не найдена в SpriteFrames")
 
 
 # Проигрывает анимацию появления из-под земли (мышка возвращает)
@@ -209,7 +209,10 @@ func _on_appear_finished() -> void:
 
 
 func _ready() -> void:
-	# Создаем плеер для звука движения
+	_setup_sound_players()
+	call_deferred("play_idle_animation")
+
+func _setup_sound_players() -> void:
 	if not move_sound_path.is_empty():
 		var sound = load(move_sound_path)
 		if sound is AudioStream:
@@ -221,7 +224,6 @@ func _ready() -> void:
 		else:
 			printerr("Carrot.gd: Не удалось загрузить звук движения: ", move_sound_path)
 	
-	# Создаем плеер для звука поедания
 	if not eat_sound_path.is_empty():
 		var sound = load(eat_sound_path)
 		if sound is AudioStream:
@@ -232,6 +234,3 @@ func _ready() -> void:
 			add_child(_eat_sound_player)
 		else:
 			printerr("Carrot.gd: Не удалось загрузить звук поедания: ", eat_sound_path)
-	
-	# Запускаем анимацию покоя при инициализации
-	call_deferred("play_idle_animation")

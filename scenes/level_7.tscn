@@ -3,7 +3,7 @@
 [ext_resource type="Script" path="res://scripts/Level.gd" id="1_rmpqq"]
 [ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_t7nkw"]
 [ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="3_x73dr"]
-[ext_resource type="PackedScene" path="res://scenes/fox_down.tscn" id="4_5ueca"]
+[ext_resource type="PackedScene" uid="uid://g8q6joppo4x5" path="res://scenes/fox_down.tscn" id="4_5ueca"]
 [ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="4_ohwob"]
 [ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="5_mn3y5"]
 

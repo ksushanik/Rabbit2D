@@ -1,28 +1,16 @@
-[gd_scene load_steps=4 format=3 uid="uid://djf7gkxkmywbn"]
+[gd_scene load_steps=2 format=3 uid="uid://djf7gkxkmywbn"]
 
 [ext_resource type="Script" path="res://scripts/UI/GameOverScreen.gd" id="1_aqf34"]
-
-[sub_resource type="LabelSettings" id="LabelSettings_h7tbs"]
-font_size = 48
-font_color = Color(1, 0.843137, 0, 1)
-outline_size = 8
-outline_color = Color(0, 0, 0, 1)
-shadow_size = 5
-shadow_color = Color(0, 0, 0, 0.627451)
-
-[sub_resource type="LabelSettings" id="LabelSettings_f083h"]
-font_size = 24
+[ext_resource type="Theme" uid="uid://bqxvxb8qkw7ys" path="res://assets/Fonts/pixel_theme.tres" id="2_pixel_theme"]
 
 [node name="GameOverScreen" type="CanvasLayer"]
 script = ExtResource("1_aqf34")
 
-[node name="ColorRect" type="ColorRect" parent="."]
+[node name="Background" type="ColorRect" parent="."]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-color = Color(0, 0, 0, 0.666667)
+color = Color(0.8, 0.7, 0.6, 1)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 anchors_preset = 15
@@ -31,32 +19,61 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+[node name="WinPanel" type="Panel" parent="CenterContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(500, 400)
+theme = ExtResource("2_pixel_theme")
 
-[node name="WinLabel" type="Label" parent="CenterContainer/VBoxContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/WinPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = -20.0
+
+[node name="WinLabel" type="Label" parent="CenterContainer/WinPanel/VBoxContainer"]
 layout_mode = 2
-text = "ПОБЕДА!"
-label_settings = SubResource("LabelSettings_h7tbs")
+text = "🎉 ПОБЕДА! 🎉"
+theme_override_font_sizes/font_size = 36
+theme_override_colors/font_color = Color(0.2, 0.1, 0.05, 1)
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="CenterContainer/VBoxContainer"]
+[node name="Spacer1" type="Control" parent="CenterContainer/WinPanel/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
 
-[node name="PlayAgainButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="PlayAgainButton" type="Button" parent="CenterContainer/WinPanel/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
 size_flags_horizontal = 4
-text = "Играть снова"
-label_settings = SubResource("LabelSettings_f083h")
+text = "🔄 Играть снова"
+theme_override_font_sizes/font_size = 18
 
-[node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="Spacer2" type="Control" parent="CenterContainer/WinPanel/VBoxContainer"]
 layout_mode = 2
-size_flags_horizontal = 4
-text = "Главное меню"
-label_settings = SubResource("LabelSettings_f083h")
+custom_minimum_size = Vector2(0, 10)
 
-[node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
+[node name="MainMenuButton" type="Button" parent="CenterContainer/WinPanel/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
 size_flags_horizontal = 4
-text = "Выйти"
-label_settings = SubResource("LabelSettings_f083h") 
+text = "🏠 Главное меню"
+theme_override_font_sizes/font_size = 18
+
+[node name="Spacer3" type="Control" parent="CenterContainer/WinPanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 10)
+
+[node name="QuitButton" type="Button" parent="CenterContainer/WinPanel/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+size_flags_horizontal = 4
+text = "🚪 Выйти"
+theme_override_font_sizes/font_size = 18
+
+[node name="Spacer4" type="Control" parent="CenterContainer/WinPanel/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3 
