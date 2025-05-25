@@ -9,7 +9,6 @@ extends Node2D
 
 # --- Ссылки на узлы (теперь через @export) ---
 @export var ground_layer: TileMap = null # <-- Изменено на @export
-@export var carrots_container: Node2D = null # <-- Изменено на @export
 @export var rabbit: Rabbit = null # <-- Изменено на @export и тип Rabbit
 @export var hud_scene: PackedScene = null # <-- ДОБАВЛЕНО: Ссылка на сцену HUD
 
@@ -46,9 +45,7 @@ func _ready() -> void:
 	if not rabbit:
 		printerr("Level.gd: Узел Rabbit не найден!")
 		return
-	if not carrots_container:
-		printerr("Level.gd: Узел CarrotsContainer не найден!")
-		return
+	# Убираем проверку carrots_container, так как морковки теперь прямые дочерние узлы
 	
 	# --- ДОБАВЛЕНО: Проверка и настройка Camera2D ---
 	var camera: Camera2D = find_child("*Camera2D", true, false) as Camera2D # Ищем существующую камеру
@@ -114,16 +111,18 @@ func _ready() -> void:
 	# 4. Инициализация Морковок
 	active_carrots.clear()
 	# --- DEBUG START ---
-	if not carrots_container:
-		printerr("Level.gd _ready: Узел CarrotsContainer НЕ НАЙДЕН! Проверьте имя '$CarrotsContainer' в сцене.")
-		return # Дальше нет смысла идти
-	print(">>> DEBUG: Начинаем поиск морковок в '%s'. Количество детей: %d" % [carrots_container.name, carrots_container.get_child_count()])
+	print(">>> DEBUG: Начинаем поиск морковок среди дочерних узлов Level. Количество детей: %d" % get_child_count())
 	# --- DEBUG END ---
-	for carrot_node in carrots_container.get_children():
+	for carrot_node in get_children():
 		# --- DEBUG START ---
 		print(">>> DEBUG: Проверяем узел: '%s', Тип: %s, Имеет set_grid_position?: %s" % [carrot_node.name, carrot_node.get_class(), carrot_node.has_method("set_grid_position")])
 		# --- DEBUG END ---
-		if carrot_node is Node2D and carrot_node.has_method("set_grid_position") and carrot_node.has_method("initialize"):
+		# Проверяем, что это морковка (имеет нужные методы и не является системным узлом)
+		if (carrot_node is Node2D and 
+			carrot_node.has_method("set_grid_position") and 
+			carrot_node.has_method("initialize") and
+			carrot_node != ground_layer and 
+			carrot_node != rabbit):
 			# Используем global_position для корректного расчета изначальной клетки
 			var carrot_grid_pos = world_to_grid(carrot_node.global_position) # <-- Используем global_position
 			# Передаем размер тайла и устанавливаем позицию
@@ -282,8 +281,16 @@ func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
 			var rabbit_not_facing_carrot = (last_rabbit_direction != offset)
 			
 			if no_obstacle and rabbit_not_facing_carrot:
-				print("Морковка в %s пугается: нет препятствий и кролик движется не на неё" % check_pos)
-				scared_carrots_list.append(scared_carrot)
+				# ДОПОЛНИТЕЛЬНАЯ ПРОВЕРКА: Может ли морковка вообще убежать?
+				var carrot_offset = check_pos - rabbit_final_pos
+				var calc_result = calculate_slide_destination(check_pos, carrot_offset, scared_carrot)
+				var can_escape = (calc_result["final_position"] != check_pos)
+				
+				if can_escape:
+					print("Морковка в %s пугается: нет препятствий, кролик движется не на неё, и может убежать" % check_pos)
+					scared_carrots_list.append(scared_carrot)
+				else:
+					print("Морковка в %s НЕ пугается: заперта и не может убежать" % check_pos)
 			else:
 				if not no_obstacle:
 					print("Морковка в %s НЕ пугается: есть препятствие" % check_pos)
@@ -408,13 +415,14 @@ func is_full_wall(grid_pos: Vector2i) -> bool:
 
 # Проверяет, является ли клетка выходом
 func is_exit(grid_pos: Vector2i) -> bool:
-	var tile_data = get_tile_data(grid_pos)
+	# Проверяем тайл выхода на слое Obstacles (слой 1)
+	var tile_data = get_tile_data(grid_pos, 1)
 	if not tile_data:
-		print("DEBUG: В is_exit получен null TileData для позиции ", grid_pos)
+		print("DEBUG: В is_exit получен null TileData для позиции ", grid_pos, " на слое 1")
 		return false
 	
 	var exit_property = tile_data.get_custom_data("type")
-	print("DEBUG: Тип тайла в позиции ", grid_pos, " = ", exit_property)
+	print("DEBUG: Тип тайла в позиции ", grid_pos, " на слое 1 = ", exit_property)
 	return exit_property == "exit"
 
 # Получает данные о блокировках частичной стены из Custom Data
@@ -520,6 +528,12 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 			collided_with = carrot_at_next
 			# Определяем, будет ли морковка съедена (только если entity - кролик)
 			will_eat_carrot = entity is Rabbit
+			break
+
+		# НОВАЯ ПРОВЕРКА: Если кролик достиг выхода и все морковки собраны, останавливаемся
+		if entity is Rabbit and is_exit(next_pos) and check_win_condition():
+			print("DEBUG: Кролик достиг выхода, все морковки собраны - останавливаемся")
+			current_pos = next_pos
 			break
 
 		# Если нет коллизий, двигаемся дальше

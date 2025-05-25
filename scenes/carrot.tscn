@@ -9,4 +9,4 @@ eat_sound_path = "res://assets/Sounds/ukus-yabloka-korotkiy.wav"
 
 [node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
 sprite_frames = ExtResource("2_frames")
-animation = &"appear"
+animation = &"idle"

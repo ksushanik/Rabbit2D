@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://c10v4t7n58w4n"]
+[gd_scene load_steps=6 format=3 uid="uid://nqnw2v3ac2a1"]
 
 [ext_resource type="Script" path="res://scripts/Level.gd" id="1_flmkp"]
 [ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="2_8jj6w"]
@@ -6,25 +6,30 @@
 [ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="3_0fjcx"]
 [ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="4_ed5bh"]
 
-[node name="Level4" type="Node2D" node_paths=PackedStringArray("ground_layer", "carrots_container", "rabbit")]
+[node name="Level4" type="Node2D" node_paths=PackedStringArray("ground_layer", "rabbit")]
 script = ExtResource("1_flmkp")
-ground_layer = NodePath("GroundLayer")
-carrots_container = NodePath("CarrotsContainer")
+ground_layer = NodePath("Ground")
 rabbit = NodePath("Rabbit")
 hud_scene = ExtResource("2_pia3t")
 
-[node name="GroundLayer" type="TileMap" parent="."]
+[node name="Ground" type="TileMap" parent="."]
 tile_set = ExtResource("2_8jj6w")
+rendering_quadrant_size = 32
 format = 2
-layer_0/tile_data = PackedInt32Array(0, 1, 0, 65536, 1, 0, 131072, 1, 0, 196608, 1, 0, 262144, 1, 0, 327680, 1, 0, 393216, 1, 0, 458752, 1, 0, 1, 1, 0, 2, 1, 0, 3, 1, 0, 4, 1, 0, 5, 1, 0, 6, 1, 0, 7, 1, 0, 65537, 131073, 2, 65538, 196609, 2, 65539, 131073, 2, 65540, 196609, 2, 65541, 131073, 2, 65542, 196609, 2, 131074, 131073, 2, 131075, 196609, 2, 131076, 131073, 2, 131077, 196609, 2, 131078, 131073, 2, 131079, 1, 0, 196609, 131073, 1, 196610, 196609, 2, 196611, 131073, 2, 196612, 131073, 1, 196613, 131073, 2, 196614, 196609, 2, 262146, 131073, 2, 262147, 196609, 2, 262148, 131073, 2, 262149, 196609, 2, 262150, 131073, 2, 262151, 1, 0, 327681, 131073, 2, 327682, 196609, 2, 327683, 1, 3, 327684, 196609, 2, 327685, 131073, 2, 327686, 131073, 1, 393218, 131073, 2, 393219, 196609, 2, 393220, 131073, 2, 393221, 196609, 2, 393222, 131073, 2, 393223, 1, 0, 458753, 1, 0, 458754, 1, 0, 458755, 1, 0, 458756, 1, 0, 458757, 1, 0, 458758, 1, 0, 458759, 1, 0, 327687, 1, 0, 196615, 1, 0, 65543, 1, 0, 393217, 196609, 2, 262145, 131073, 1, 131073, 131073, 1)
-
-[node name="CarrotsContainer" type="Node2D" parent="."]
-
-[node name="Carrot" parent="CarrotsContainer" instance=ExtResource("3_0fjcx")]
-position = Vector2(161, 224)
-
-[node name="Carrot2" parent="CarrotsContainer" instance=ExtResource("3_0fjcx")]
-position = Vector2(351, 288)
+layer_0/name = "Ground"
+layer_0/tile_data = PackedInt32Array(0, 393216, 2, 1, 196608, 1342177282, 2, 196608, 1342177282, 3, 196608, 1342177282, 4, 196608, 1342177282, 5, 196608, 1342177282, 6, 196608, 1342177282, 393216, 196608, 2, 196608, 65536, 8, 131072, 327680, 2, 65536, 196608, 2, 262144, 393216, 2, 327680, 196608, 2, 65537, 327680, 0, 65538, 393216, 0, 65539, 65536, 0, 65540, 0, 0, 65541, 393216, 0, 131078, 262144, 0, 196614, 524288, 0, 65542, 524288, 0, 393217, 393216, 0, 327681, 393216, 0, 262145, 131072, 1342177282, 196609, 196608, 2, 131073, 131072, 2, 131074, 131072, 0, 131075, 327680, 0, 131076, 524288, 0, 131077, 65536, 0, 262150, 327680, 0, 327686, 196608, 0, 393222, 327680, 0, 393221, 196608, 0, 393220, 196608, 0, 393219, 524288, 0, 393218, 65536, 0, 327682, 524288, 0, 262146, 524288, 0, 327683, 196608, 0, 327684, 131072, 0, 327685, 458752, 0, 262149, 131072, 0, 262148, 524288, 0, 262147, 0, 0, 196610, 458752, 0, 196611, 0, 0, 196612, 393216, 0, 196613, 65536, 0, 458752, 393216, 1610612738, 458753, 196608, 1610612738, 458754, 196608, 1610612738, 458755, 196608, 1610612738, 458756, 196608, 1610612738, 458757, 196608, 1610612738, 458758, 196608, 1610612738, 7, 393216, 1342177282, 65543, 196608, 805306370, 131079, 196608, 805306370, 196615, 196608, 805306370, 262151, 196608, 805306370, 327687, 196608, 805306370, 393223, 196608, 805306370, 458759, 393216, 805306370)
+layer_1/name = "Obstacles"
+layer_1/z_index = 1
+layer_1/tile_data = PackedInt32Array(327686, 458752, 4, 196612, 458752, 5, 327683, 196608, 8)
+layer_2/name = "FenceLayer"
+layer_2/z_index = 10
 
 [node name="Rabbit" parent="." instance=ExtResource("4_ed5bh")]
-position = Vector2(96, 351)
+z_index = 5
+position = Vector2(48, 176)
+
+[node name="Carrot" parent="." instance=ExtResource("3_0fjcx")]
+position = Vector2(80, 112)
+
+[node name="Carrot2" parent="." instance=ExtResource("3_0fjcx")]
+position = Vector2(176, 144)
