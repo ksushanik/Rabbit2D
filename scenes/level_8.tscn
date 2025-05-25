@@ -1,0 +1,33 @@
+[gd_scene load_steps=6 format=3 uid="uid://d0i5j40qa1e2n"]
+
+[ext_resource type="Script" path="res://scripts/Level.gd" id="1_rmpqq"]
+[ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_t7nkw"]
+[ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="3_x73dr"]
+[ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="4_ohwob"]
+[ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="5_mn3y5"]
+
+[node name="Level8" type="Node2D" node_paths=PackedStringArray("ground_layer", "rabbit")]
+script = ExtResource("1_rmpqq")
+ground_layer = NodePath("Ground")
+rabbit = NodePath("Rabbit")
+hud_scene = ExtResource("2_t7nkw")
+
+[node name="Ground" type="TileMap" parent="."]
+tile_set = ExtResource("3_x73dr")
+rendering_quadrant_size = 32
+format = 2
+layer_0/name = "Ground"
+layer_0/tile_data = PackedInt32Array(0, 393216, 3, 65536, 196608, 3, 131072, 196608, 3, 196608, 196608, 3, 262144, 196608, 3, 327680, 196608, 3, 7, 393216, 1342177283, 65543, 196608, 805306371, 131079, 196608, 805306371, 196615, 196608, 805306371, 262151, 196608, 805306371, 327687, 196608, 805306371, 6, 196608, 1342177283, 5, 196608, 1342177283, 4, 196608, 1342177283, 2, 196608, 1342177283, 3, 196608, 1342177283, 131074, 65536, 1, 131075, 131072, 1, 131076, 0, 1, 131077, 131072, 65537, 131078, 458752, 3, 196610, 131072, 1, 196611, 65536, 1, 196612, 458752, 65537, 196613, 131072, 65537, 196614, 458752, 3, 262146, 131072, 1, 262147, 65536, 1, 262148, 65536, 1, 262149, 131072, 65537, 262150, 458752, 3, 327682, 0, 1, 327683, 131072, 1, 327684, 0, 1, 327685, 131072, 65537, 327686, 524288, 3, 65541, 131072, 65537, 65542, 524288, 1342177283, 1, 196608, 1342177283, 393216, 393216, 1610612739, 393218, 196608, 1610612739, 393219, 196608, 1610612739, 393220, 196608, 1610612739, 393221, 196608, 1610612739, 393222, 196608, 1610612739, 393223, 393216, 805306371, 393217, 196608, 1610612739, 65537, 0, 1, 131073, 131072, 1, 196609, 65536, 1, 262145, 65536, 1, 327681, 65536, 1, 65538, 131072, 1, 65539, 65536, 1, 65540, 131072, 1)
+layer_1/name = "Obstacles"
+layer_1/z_index = 1
+layer_1/tile_data = PackedInt32Array(131077, 327680, 8, 327681, 262144, 4, 262145, 65536, 4, 65538, 196608, 8)
+layer_2/name = "FenceLayer"
+layer_2/z_index = 10
+layer_2/tile_data = PackedInt32Array(65541, 458752, 7, 131077, 458752, 7, 196613, 458752, 7, 262149, 458752, 7, 327685, 458752, 7, 131076, 0, 7)
+
+[node name="Rabbit" parent="." instance=ExtResource("5_mn3y5")]
+z_index = 5
+position = Vector2(112, 176)
+
+[node name="Carrot" parent="." instance=ExtResource("4_ohwob")]
+position = Vector2(48, 112)

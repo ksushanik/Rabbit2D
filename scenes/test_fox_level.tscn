@@ -1,0 +1,37 @@
+[gd_scene load_steps=6 format=3 uid="uid://test_fox_level"]
+
+[ext_resource type="Script" path="res://scripts/Level.gd" id="1_level"]
+[ext_resource type="PackedScene" path="res://scenes/UI/HUD.tscn" id="2_hud"]
+[ext_resource type="TileSet" uid="uid://dou014gw3uvhm" path="res://assets/tilemap/new_world.tres" id="3_tileset"]
+[ext_resource type="PackedScene" uid="uid://icmp47av7ddm" path="res://scenes/carrot.tscn" id="4_carrot"]
+[ext_resource type="PackedScene" uid="uid://dcxy5gwg1qjoh" path="res://scenes/rabbit.tscn" id="5_rabbit"]
+[ext_resource type="PackedScene" uid="uid://fox_right_scene" path="res://scenes/fox_right.tscn" id="6_fox_right"]
+
+[node name="TestFoxLevel" type="Node2D" node_paths=PackedStringArray("ground_layer", "rabbit")]
+script = ExtResource("1_level")
+ground_layer = NodePath("Ground")
+rabbit = NodePath("Rabbit")
+hud_scene = ExtResource("2_hud")
+
+[node name="Ground" type="TileMap" parent="."]
+tile_set = ExtResource("3_tileset")
+rendering_quadrant_size = 32
+format = 2
+layer_0/name = "Ground"
+layer_0/tile_data = PackedInt32Array(0, 0, 8, 65536, 0, 8, 131072, 0, 8, 196608, 0, 8, 262144, 0, 8, 1, 0, 8, 65537, 0, 8, 131073, 0, 8, 196609, 0, 8, 262145, 0, 8, 2, 0, 8, 65538, 0, 8, 131074, 0, 8, 196610, 0, 8, 262146, 0, 8, 3, 0, 8, 65539, 0, 8, 131075, 0, 8, 196611, 0, 8, 262147, 0, 8, 4, 0, 8, 65540, 0, 8, 131076, 0, 8, 196612, 0, 8, 262148, 0, 8)
+layer_1/name = "Obstacles"
+layer_1/z_index = 1
+layer_1/tile_data = PackedInt32Array()
+layer_2/name = "FenceLayer"
+layer_2/z_index = 10
+
+[node name="Rabbit" parent="." instance=ExtResource("5_rabbit")]
+z_index = 5
+position = Vector2(48, 48)
+
+[node name="Carrot" parent="." instance=ExtResource("4_carrot")]
+position = Vector2(144, 48)
+
+[node name="FoxRight" parent="." instance=ExtResource("6_fox_right")]
+z_index = 5
+position = Vector2(112, 48) 

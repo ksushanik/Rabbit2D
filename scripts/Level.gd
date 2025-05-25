@@ -32,6 +32,10 @@ var moving_carrots_count: int = 0 # Счетчик морковок, котор�
 var last_rabbit_direction: Vector2i = Vector2i.ZERO # Запоминаем последнее направление кролика
 var last_move_calculation_result: Dictionary = {} # <-- ДОБАВЛЕНО: Сохраняем результат расчета хода
 
+# --- Отслеживание лис ---
+# Массив всех лис на уровне
+var active_foxes: Array[Fox] = []
+
 # --- Внутренние переменные ---
 var _level_complete_player: AudioStreamPlayer = null # <-- ВОССТАНОВЛЕНО
 
@@ -117,12 +121,13 @@ func _ready() -> void:
 		# --- DEBUG START ---
 		print(">>> DEBUG: Проверяем узел: '%s', Тип: %s, Имеет set_grid_position?: %s" % [carrot_node.name, carrot_node.get_class(), carrot_node.has_method("set_grid_position")])
 		# --- DEBUG END ---
-		# Проверяем, что это морковка (имеет нужные методы и не является системным узлом)
+		# Проверяем, что это морковка (имеет нужные методы, не является системным узлом и НЕ является лисой)
 		if (carrot_node is Node2D and 
 			carrot_node.has_method("set_grid_position") and 
 			carrot_node.has_method("initialize") and
 			carrot_node != ground_layer and 
-			carrot_node != rabbit):
+			carrot_node != rabbit and
+			not carrot_node is Fox): # <-- ДОБАВЛЕНО: исключаем лис
 			# Используем global_position для корректного расчета изначальной клетки
 			var carrot_grid_pos = world_to_grid(carrot_node.global_position) # <-- Используем global_position
 			# Передаем размер тайла и устанавливаем позицию
@@ -131,15 +136,49 @@ func _ready() -> void:
 			active_carrots[carrot_grid_pos] = carrot_node
 			# Подписываемся на сигнал окончания движения морковки (если еще не подписаны)
 			var callable_carrot_finished = Callable(self, "_on_carrot_move_finished")
-			if not carrot_node.move_finished.is_connected(callable_carrot_finished):
+			if carrot_node.move_finished.is_connected(callable_carrot_finished):
+				print("Сигнал move_finished уже подключен для морковки: ", carrot_node.name)
+			else:
 				carrot_node.move_finished.connect(callable_carrot_finished)
+				print("Подключен сигнал move_finished для морковки: ", carrot_node.name)
+		else:
+			if carrot_node is Fox:
+				print(">>> DEBUG: Пропускаем лису: ", carrot_node.name)
+			elif carrot_node == ground_layer or carrot_node == rabbit:
+				print(">>> DEBUG: Пропускаем системный узел: ", carrot_node.name)
 			else:
 				# Если метод initialize или set_grid_position отсутствует
-				printerr("Ошибка инициализации узла '%s'. Проверьте скрипт и тип узла." % carrot_node.name)
+				print(">>> DEBUG: Узел '%s' не является морковкой (отсутствуют нужные методы)" % carrot_node.name)
 	
 	carrots_remaining = active_carrots.size()
 	print("Уровень начат. Морковок: ", carrots_remaining)
 	carrots_updated.emit(carrots_remaining) # <-- ДОБАВЛЕНО: Отправляем начальное значение в HUD
+
+	# 4.5. Инициализация Лис
+	active_foxes.clear()
+	print(">>> DEBUG: Начинаем поиск лис среди дочерних узлов Level.")
+	for fox_node in get_children():
+		# Проверяем, что это лиса (имеет нужные методы и не является системным узлом)
+		if (fox_node is Fox and 
+			fox_node.has_method("set_grid_position") and 
+			fox_node.has_method("initialize")):
+			# Используем global_position для корректного расчета изначальной клетки
+			var fox_grid_pos = world_to_grid(fox_node.global_position)
+			# Передаем размер тайла и устанавливаем позицию
+			fox_node.initialize(tile_size)
+			fox_node.set_grid_position(fox_grid_pos)
+			active_foxes.append(fox_node)
+			print("Лиса '%s' инициализирована в позиции: %s, опасная зона: %s, направление: %s" % [
+				fox_node.name, 
+				fox_grid_pos, 
+				fox_node.get_danger_zone_position(),
+				fox_node.fox_direction
+			])
+		else:
+			if fox_node is Fox:
+				printerr("Лиса '%s' не имеет нужных методов!" % fox_node.name)
+	
+	print("Найдено лис: ", active_foxes.size())
 
 	# 5. Создание плеера для звука завершения
 	if not level_complete_sound_path.is_empty():
@@ -222,6 +261,43 @@ func _on_rabbit_move_finished() -> void:
 		
 	var final_grid_pos: Vector2i = world_to_grid(rabbit.position)
 	rabbit.grid_pos = final_grid_pos
+	
+	# ПРОВЕРЯЕМ ПАДЕНИЕ В ЯМУ ПЕРВЫМ ДЕЛОМ
+	if last_move_calculation_result.get("hit_pit", false):
+		print("Кролик упал в яму!")
+		# Определяем направление движения для выбора правильной анимации
+		var dir_name = "down"  # По умолчанию
+		
+		# Используем last_rabbit_direction для определения направления
+		if last_rabbit_direction == Vector2i.RIGHT:
+			dir_name = "right"
+		elif last_rabbit_direction == Vector2i.LEFT:
+			dir_name = "left"
+		elif last_rabbit_direction == Vector2i.DOWN:
+			dir_name = "down"
+		elif last_rabbit_direction == Vector2i.UP:
+			dir_name = "up"
+			
+		# Запускаем анимацию падения в выбранном направлении
+		rabbit.play_animation("fall_into_pit_" + dir_name)
+		
+		# Ждем завершения анимации перед показом диалога
+		_wait_for_pit_fall_animation()
+		return
+	
+	# ПРОВЕРЯЕМ ПОПАДАНИЕ В ОПАСНУЮ ЗОНУ (ЛИСА)
+	for fox in active_foxes:
+		if fox.is_rabbit_in_danger_zone(final_grid_pos):
+			print("Кролик попал в опасную зону лисы! Лиса его съела!")
+			# Запускаем анимацию атаки лисы
+			fox.play_attack_animation()
+			# Запускаем анимацию поедания кролика лисой (если есть)
+			if rabbit.has_method("play_animation"):
+				rabbit.play_animation("eaten_by_fox")
+			
+			# Ждем завершения анимаций перед показом диалога
+			_wait_for_fox_attack_animations(fox)
+			return
 	
 	var eaten_carrot_this_turn: bool = false
 	var adjacent_scared_by_eating: bool = false # Флаг для испуганных соседей
@@ -438,6 +514,13 @@ func get_partial_wall_blocks(grid_pos: Vector2i) -> Dictionary:
 func get_carrot_at(grid_pos: Vector2i) -> Carrot:
 	return active_carrots.get(grid_pos, null) as Carrot
 
+# Возвращает узел лисы в указанной клетке, если он есть
+func get_fox_at(grid_pos: Vector2i) -> Fox:
+	for fox in active_foxes:
+		if fox.get_grid_position() == grid_pos:
+			return fox
+	return null
+
 # Обновляет позицию морковки в словаре active_carrots.
 # Вызывается из Carrot.gd ПОСЛЕ завершения анимации движения.
 func update_carrot_position(carrot_node: Node, old_grid_pos: Vector2i, new_grid_pos: Vector2i) -> void:
@@ -454,21 +537,25 @@ func update_carrot_position(carrot_node: Node, old_grid_pos: Vector2i, new_grid_
 
 
 # Проверяет, свободна ли клетка для движения КРОЛИКА
-# (Нет стены/выхода И нет морковки)
+# (Нет стены/выхода И нет морковки И нет лисы)
 func is_cell_vacant_for_rabbit(grid_pos: Vector2i) -> bool:
 	if is_full_wall(grid_pos):
 		return false
 	if active_carrots.has(grid_pos):
 		return false
+	if get_fox_at(grid_pos) != null:
+		return false
 	return true
 
 # Проверяет, свободна ли клетка для движения МОРКОВКИ
-# (Нет стены/выхода И нет ДРУГОЙ морковки)
+# (Нет стены/выхода И нет ДРУГОЙ морковки И нет лисы)
 func is_cell_vacant_for_carrot(grid_pos: Vector2i, asking_carrot: Node) -> bool:
 	if is_full_wall(grid_pos):
 		return false
 	var carrot_at_pos = get_carrot_at(grid_pos)
 	if carrot_at_pos != null and carrot_at_pos != asking_carrot: # Если там есть морковка, и это не та, что спрашивает
+		return false
+	if get_fox_at(grid_pos) != null: # Лиса тоже блокирует движение морковки
 		return false
 	return true
 
@@ -519,6 +606,12 @@ func calculate_slide_destination(start_pos: Vector2i, direction: Vector2i, entit
 			hit_pit = true
 			# Для ямы мы ПЕРЕМЕЩАЕМСЯ на неё, а не останавливаемся перед ней
 			current_pos = next_pos
+			break
+
+		# Проверяем коллизию с лисами (лиса - препятствие для всех)
+		var fox_at_next = get_fox_at(next_pos)
+		if fox_at_next != null:
+			hit_wall = true # Лиса считается стеной
 			break
 
 		# Проверяем коллизию с морковками
@@ -683,52 +776,140 @@ func is_blocked_by_fence(from_pos: Vector2i, to_pos: Vector2i) -> bool:
 	
 	return false # Если не нашли блокировок - движение разрешено
 
-func _handle_rabbit_move_finished(rabbit_final_pos: Vector2i) -> void:
-	# Изменяем grid_pos кролика в соответствии с финальной позицией
-	rabbit.grid_pos = rabbit_final_pos
-	
-	# Проверяем, попал ли кролик в яму
-	if last_move_calculation_result.get("hit_pit", false):
-		print("Кролик упал в яму!")
-		# Определяем направление движения для выбора правильной анимации
-		var dir_name = "down"  # По умолчанию
-		
-		# Используем last_rabbit_direction для определения направления
-		if last_rabbit_direction == Vector2i.RIGHT:
-			dir_name = "right"
-		elif last_rabbit_direction == Vector2i.LEFT:
-			dir_name = "left"
-		elif last_rabbit_direction == Vector2i.DOWN:
-			dir_name = "down"
-		elif last_rabbit_direction == Vector2i.UP:
-			dir_name = "up"
-			
-		# Запускаем анимацию падения в выбранном направлении
-		rabbit.play_animation("fall_into_pit_" + dir_name)
-		
-		# Через небольшую задержку перезапускаем уровень
-		await get_tree().create_timer(1.5).timeout
-		restart_level()
-		return
-		
-	# Проверка на поедание морковки, если кролик столкнулся с ней
-	var adjacent_scared_by_eating = []
-	var eaten_carrot_this_turn = false
-	
-	if last_move_calculation_result.get("hit_carrot", false):
-		var carrot_to_eat: Node = last_move_calculation_result.get("carrot", null)
-		if is_instance_valid(carrot_to_eat):
-			# Вызываем eat_carrot и сохраняем результат (были ли напуганы соседи)
-			adjacent_scared_by_eating = eat_carrot(carrot_to_eat) 
-			eaten_carrot_this_turn = true # Сам факт поедания произошел
-		else:
-			printerr("Ошибка: hit_carrot=true, но carrot недействителен!")
 
 # Проверяет, является ли клетка ямой
 func is_pit(grid_pos: Vector2i) -> bool:
-	var tile_data = get_tile_data(grid_pos)
-	if not tile_data:
-		return false
+	# Проверяем ямы на любом слое через Custom Data
+	for layer_index in range(ground_layer.get_layers_count()):
+		var tile_data = get_tile_data(grid_pos, layer_index)
+		if tile_data:
+			var tile_type = tile_data.get_custom_data("type")
+			if tile_type == "pit":
+				return true
+	return false
+
+# Проверяет, является ли клетка опасной (зона лисы)
+func is_danger_zone(grid_pos: Vector2i) -> bool:
+	# Проверяем опасные зоны на любом слое через Custom Data
+	for layer_index in range(ground_layer.get_layers_count()):
+		var tile_data = get_tile_data(grid_pos, layer_index)
+		if tile_data:
+			var tile_type = tile_data.get_custom_data("type")
+			if tile_type == "danger":
+				return true
+	return false
+
+# Ждет завершения анимации падения в яму перед показом диалога
+func _wait_for_pit_fall_animation() -> void:
+	# Создаем таймер для задержки
+	var timer = Timer.new()
+	timer.wait_time = 1.0 # Ждем 1 секунду для завершения анимации падения
+	timer.one_shot = true
+	add_child(timer)
 	
-	var tile_type = tile_data.get_custom_data("type")
-	return tile_type == "pit"
+	# Подключаем сигнал завершения таймера
+	timer.timeout.connect(_on_pit_fall_timer_finished.bind(timer))
+	timer.start()
+
+# Вызывается после завершения таймера анимации падения в яму
+func _on_pit_fall_timer_finished(timer: Timer) -> void:
+	# Удаляем таймер
+	timer.queue_free()
+	
+	# Показываем диалог
+	_show_pit_fall_dialog()
+
+# Показывает диалог выбора после падения в яму
+func _show_pit_fall_dialog() -> void:
+	# Создаем простой диалог с выбором
+	var dialog = AcceptDialog.new()
+	dialog.title = "Кролик упал в яму!"
+	dialog.dialog_text = "Кролик провалился в яму!\n\nЧто делать?"
+	
+	# Добавляем кнопки
+	dialog.add_button("Перезапустить уровень", false, "restart")
+	dialog.add_button("Главное меню", false, "menu")
+	dialog.add_button("Выйти из игры", false, "quit")
+	
+	# Подключаем сигналы
+	dialog.custom_action.connect(_on_pit_dialog_action)
+	dialog.confirmed.connect(_on_pit_dialog_restart)
+	
+	# Добавляем диалог в сцену и показываем
+	add_child(dialog)
+	dialog.popup_centered()
+
+# Ждет завершения анимаций атаки лисы перед показом диалога
+func _wait_for_fox_attack_animations(fox: Fox) -> void:
+	# Создаем таймер для задержки
+	var timer = Timer.new()
+	timer.wait_time = 1.5 # Ждем 1.5 секунды для завершения анимаций
+	timer.one_shot = true
+	add_child(timer)
+	
+	# Подключаем сигнал завершения таймера
+	timer.timeout.connect(_on_fox_attack_timer_finished.bind(timer))
+	timer.start()
+
+# Вызывается после завершения таймера анимации атаки лисы
+func _on_fox_attack_timer_finished(timer: Timer) -> void:
+	# Удаляем таймер
+	timer.queue_free()
+	
+	# Показываем диалог
+	_show_fox_attack_dialog()
+
+# Показывает диалог выбора после атаки лисы
+func _show_fox_attack_dialog() -> void:
+	# Создаем простой диалог с выбором
+	var dialog = AcceptDialog.new()
+	dialog.title = "Лиса поймала кролика!"
+	dialog.dialog_text = "Кролик остановился в опасной зоне и лиса его съела!\n\nЧто делать?"
+	
+	# Добавляем кнопки
+	dialog.add_button("Перезапустить уровень", false, "restart")
+	dialog.add_button("Главное меню", false, "menu")
+	dialog.add_button("Выйти из игры", false, "quit")
+	
+	# Подключаем сигналы
+	dialog.custom_action.connect(_on_fox_dialog_action)
+	dialog.confirmed.connect(_on_fox_dialog_restart)
+	
+	# Добавляем диалог в сцену и показываем
+	add_child(dialog)
+	dialog.popup_centered()
+
+# Обработка нажатия кнопок в диалоге падения в яму
+func _on_pit_dialog_action(action: String) -> void:
+	if action == "restart":
+		restart_level()
+	elif action == "menu":
+		_return_to_main_menu()
+	elif action == "quit":
+		get_tree().quit()
+
+# Обработка нажатия основной кнопки (OK) в диалоге
+func _on_pit_dialog_restart() -> void:
+	restart_level()
+
+# Обработка нажатия кнопок в диалоге атаки лисы
+func _on_fox_dialog_action(action: String) -> void:
+	if action == "restart":
+		restart_level()
+	elif action == "menu":
+		_return_to_main_menu()
+	elif action == "quit":
+		get_tree().quit()
+
+# Обработка нажатия основной кнопки (OK) в диалоге лисы
+func _on_fox_dialog_restart() -> void:
+	restart_level()
+
+# Возврат в главное меню
+func _return_to_main_menu() -> void:
+	var game_manager = get_node("/root/GameManager")
+	if game_manager and game_manager.has_method("show_main_menu"):
+		game_manager.show_main_menu()
+	else:
+		# Fallback - загружаем главное меню напрямую
+		get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn")

@@ -30,4 +30,4 @@ z_index = 5
 position = Vector2(80, 176)
 
 [node name="Carrot" parent="." instance=ExtResource("6_hfpwa")]
-position = Vector2(112, 144)
+position = Vector2(144, 144)

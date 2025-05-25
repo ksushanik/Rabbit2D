@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://fox_down_scene"]
+
+[ext_resource type="Script" path="res://scripts/Fox.gd" id="1_fox"]
+[ext_resource type="SpriteFrames" uid="uid://fox_animations" path="res://assets/Sprites/Fox/fox_animations.tres" id="2_fox_anim"]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_fox"]
+size = Vector2(28, 28)
+
+[node name="FoxDown" type="CharacterBody2D"]
+script = ExtResource("1_fox")
+fox_direction = Vector2i(0, 1)
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = ExtResource("2_fox_anim")
+animation = &"idle_down"
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="."]
+shape = SubResource("RectangleShape2D_fox") 

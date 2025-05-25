@@ -7,7 +7,13 @@ var level_paths: Array[String] = [
 	"res://scenes/level_3.tscn",
 	"res://scenes/level_4.tscn",
 	"res://scenes/level_5.tscn",
-	"res://scenes/level_6.tscn"
+	"res://scenes/level_6.tscn",
+	"res://scenes/level_7.tscn",
+	"res://scenes/level_8.tscn",
+	"res://scenes/level_9.tscn",
+	"res://scenes/level_10.tscn",
+	"res://scenes/level_11.tscn",
+	"res://scenes/level_12.tscn"
 ]
 # Ссылка на сцену экрана завершения игры
 var game_over_scene: PackedScene = load("res://scenes/UI/GameOverScreen.tscn")
@@ -16,9 +22,9 @@ var current_level_index: int = -1
 
 
 func _ready() -> void:
-	# Начать с первого уровня при запуске игры (или с другого, если нужно)
+	# Показываем главное меню при запуске игры
 	if current_level_index == -1:
-		load_level_by_index(0)
+		show_main_menu()
 
 
 func load_level_by_index(index: int) -> void:
@@ -62,6 +68,35 @@ func _unhandled_input(event: InputEvent) -> void:
 		restart_current_level()
 		# Помечаем событие как обработанное, чтобы другие узлы его не получили
 		get_tree().root.set_input_as_handled()
+
+# Возвращает список путей к уровням для меню выбора
+func get_level_paths() -> Array[String]:
+	return level_paths
+
+# Устанавливает текущий уровень (для выбора конкретного уровня)
+func set_current_level(index: int) -> void:
+	if index >= 0 and index < level_paths.size():
+		current_level_index = index
+		print("Установлен текущий уровень: ", index + 1)
+	else:
+		printerr("Неверный индекс уровня: ", index)
+
+# Загружает конкретный уровень по индексу (для меню выбора)
+func load_specific_level(index: int) -> void:
+	set_current_level(index)
+	load_level_by_index(index)
+
+# Возвращает номер текущего уровня (1-based)
+func get_current_level_number() -> int:
+	return current_level_index + 1
+
+# Показывает главное меню
+func show_main_menu() -> void:
+	var error = get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn")
+	if error != OK:
+		printerr("Ошибка загрузки главного меню. Код ошибки: ", error)
+		# Fallback - загружаем первый уровень
+		load_level_by_index(0)
 
 # Можно добавить другие функции, например, для возврата в главное меню,
 # сохранения/загрузки прогресса и т.д. 

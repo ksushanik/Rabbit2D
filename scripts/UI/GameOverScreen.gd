@@ -2,6 +2,7 @@ extends CanvasLayer
 
 # Ссылки на кнопки
 @onready var play_again_button: Button = $CenterContainer/VBoxContainer/PlayAgainButton
+@onready var main_menu_button: Button = $CenterContainer/VBoxContainer/MainMenuButton
 @onready var quit_button: Button = $CenterContainer/VBoxContainer/QuitButton
 
 func _ready() -> void:
@@ -13,6 +14,11 @@ func _ready() -> void:
 		play_again_button.pressed.connect(_on_play_again_button_pressed)
 	else:
 		printerr("GameOverScreen: Кнопка PlayAgainButton не найдена!")
+	
+	if main_menu_button:
+		main_menu_button.pressed.connect(_on_main_menu_button_pressed)
+	else:
+		printerr("GameOverScreen: Кнопка MainMenuButton не найдена!")
 		
 	if quit_button:
 		quit_button.pressed.connect(_on_quit_button_pressed)
@@ -40,6 +46,21 @@ func _on_play_again_button_pressed() -> void:
 			printerr("GameOverScreen: Метод load_level_by_index отсутствует в GameManager!")
 	else:
 		printerr("GameOverScreen: Не удалось найти GameManager!")
+		
+	# Удаляем сам экран победы (отложенный вызов)
+	call_deferred("queue_free")
+
+# Вызывается при нажатии кнопки "Главное меню"
+func _on_main_menu_button_pressed() -> void:
+	# Снимаем паузу перед переходом
+	get_tree().paused = false
+	
+	var game_manager = get_node("/root/GameManager")
+	if game_manager and game_manager.has_method("show_main_menu"):
+		game_manager.show_main_menu()
+	else:
+		# Fallback - загружаем главное меню напрямую
+		get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn")
 		
 	# Удаляем сам экран победы (отложенный вызов)
 	call_deferred("queue_free")

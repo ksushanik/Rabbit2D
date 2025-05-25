@@ -35,12 +35,27 @@ texture_region_size = Vector2i(32, 32)
 8:0/0 = 0
 0:1/0 = 0
 1:1/0 = 0
+2:1/next_alternative_id = 2
 2:1/0 = 0
+2:1/1 = 1
+2:1/1/custom_data_2 = {
+"east": true
+}
 3:1/0 = 0
 4:1/0 = 0
 5:1/0 = 0
+6:1/next_alternative_id = 2
 6:1/0 = 0
+6:1/1 = 1
+6:1/1/custom_data_2 = {
+"west": true
+}
+7:1/next_alternative_id = 2
 7:1/0 = 0
+7:1/1 = 1
+7:1/1/custom_data_2 = {
+"north": true
+}
 8:1/0 = 0
 0:2/0 = 0
 0:2/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
@@ -149,8 +164,19 @@ texture_region_size = Vector2i(32, 32)
 3:8/0/custom_data_0 = "exit"
 4:8/0 = 0
 5:8/0 = 0
+5:8/0/custom_data_0 = "pit"
 6:8/0 = 0
 6:8/0/physics_layer_0/polygon_0/points = PackedVector2Array(-16, -16, 16, -16, 16, 16, -16, 16)
+7:8/next_alternative_id = 3
+7:8/0 = 0
+7:8/1 = 1
+7:8/1/custom_data_0 = "pit"
+7:8/2 = 2
+7:8/2/custom_data_0 = "pit"
+8:8/next_alternative_id = 2
+8:8/0 = 0
+8:8/1 = 1
+8:8/1/custom_data_0 = "danger"
 
 [resource]
 tile_size = Vector2i(32, 32)

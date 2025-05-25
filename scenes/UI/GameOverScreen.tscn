@@ -49,6 +49,12 @@ size_flags_horizontal = 4
 text = "Играть снова"
 label_settings = SubResource("LabelSettings_f083h")
 
+[node name="MainMenuButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 4
+text = "Главное меню"
+label_settings = SubResource("LabelSettings_f083h")
+
 [node name="QuitButton" type="Button" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 4
