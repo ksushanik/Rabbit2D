@@ -3,24 +3,10 @@ extends CanvasLayer
 # Ссылки на кнопки
 @onready var play_again_button: Button = $CenterContainer/VBoxContainer/PlayAgainButton
 @onready var quit_button: Button = $CenterContainer/VBoxContainer/QuitButton
-@onready var win_label: Label = $CenterContainer/VBoxContainer/WinLabel
-
-# Константы для типов экрана
-enum ScreenType { WIN, LOSE }
-var current_screen_type: int = ScreenType.WIN
 
 func _ready() -> void:
 	# Устанавливаем режим обработки, чтобы UI работал на паузе
 	self.process_mode = Node.PROCESS_MODE_ALWAYS
-	
-	# Проверяем, передан ли параметр с типом экрана
-	if has_meta("screen_type"):
-		current_screen_type = get_meta("screen_type")
-		
-	# Настраиваем текст в зависимости от типа экрана
-	if current_screen_type == ScreenType.LOSE:
-		if win_label:
-			win_label.text = "ПОРАЖЕНИЕ!"
 	
 	# Подключаем сигналы кнопок при готовности узла
 	if play_again_button:
@@ -47,19 +33,11 @@ func _on_play_again_button_pressed() -> void:
 	
 	var game_manager = get_node("/root/GameManager")
 	if game_manager:
-		# В зависимости от типа экрана делаем разные действия
-		if current_screen_type == ScreenType.WIN:
-			# Для победы - начинаем с первого уровня
-			if game_manager.has_method("load_level_by_index"):
-				game_manager.load_level_by_index(0)
-			else:
-				printerr("GameOverScreen: Метод load_level_by_index отсутствует в GameManager!")
+		# Убедимся, что метод существует, на всякий случай
+		if game_manager.has_method("load_level_by_index"):
+			game_manager.load_level_by_index(0)
 		else:
-			# Для поражения - перезапускаем текущий уровень
-			if game_manager.has_method("restart_current_level"):
-				game_manager.restart_current_level()
-			else:
-				printerr("GameOverScreen: Метод restart_current_level отсутствует в GameManager!")
+			printerr("GameOverScreen: Метод load_level_by_index отсутствует в GameManager!")
 	else:
 		printerr("GameOverScreen: Не удалось найти GameManager!")
 		

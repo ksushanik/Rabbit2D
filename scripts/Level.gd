@@ -276,13 +276,19 @@ func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
 
 		# Проверяем, что морковка существует, валидна и не движется
 		if scared_carrot and is_instance_valid(scared_carrot) and not scared_carrot.is_moving:
-			# НОВАЯ ЛОГИКА: Морковка пугается только если между ней и кроликом есть препятствие
-			# (забор или частичная стена), иначе кролик должен её съесть
-			if is_blocked_by_fence(rabbit_final_pos, check_pos) or _is_move_blocked_by_partial_wall(rabbit_final_pos, check_pos):
-				print("Морковка в %s пугается через препятствие" % check_pos)
+			# ИСПРАВЛЕННАЯ ЛОГИКА: Морковка пугается только если между ней и кроликом НЕТ препятствий
+			# И кролик не движется прямо на неё (иначе он её съест)
+			var no_obstacle = not (is_blocked_by_fence(rabbit_final_pos, check_pos) or _is_move_blocked_by_partial_wall(rabbit_final_pos, check_pos))
+			var rabbit_not_facing_carrot = (last_rabbit_direction != offset)
+			
+			if no_obstacle and rabbit_not_facing_carrot:
+				print("Морковка в %s пугается: нет препятствий и кролик движется не на неё" % check_pos)
 				scared_carrots_list.append(scared_carrot)
 			else:
-				print("Морковка в %s НЕ пугается, т.к. кролик может её съесть на следующем ходу" % check_pos)
+				if not no_obstacle:
+					print("Морковка в %s НЕ пугается: есть препятствие" % check_pos)
+				else:
+					print("Морковка в %s НЕ пугается: кролик движется прямо на неё" % check_pos)
 		
 	# Запуск движения напуганных морковок
 	# ВАЖНО: Устанавливаем счетчик, а не добавляем, т.к. этот тип испуга происходит только если не было поедания
@@ -291,15 +297,23 @@ func _process_scared_carrots(rabbit_final_pos: Vector2i) -> void:
 
 	if moving_carrots_count > 0:
 		for carrot_node in scared_carrots_list:
-			var direction_away = (carrot_node.grid_pos - rabbit_final_pos)
-			print("Морковка в ", carrot_node.grid_pos, " пугается и движется в ", direction_away)
+			# ИСПРАВЛЕННАЯ ЛОГИКА: Морковка убегает в том же направлении, что и offset
+			# offset уже содержит правильное направление от кролика к морковке
+			var carrot_offset = carrot_node.grid_pos - rabbit_final_pos
+			# Для соседних клеток offset уже является единичным вектором Vector2i
+			var direction_away_int = carrot_offset
+			
+			print("Морковка в ", carrot_node.grid_pos, " пугается и движется в направлении ", direction_away_int)
 			
 			# Рассчитываем конечную точку скольжения ЗДЕСЬ
-			var calc_result = calculate_slide_destination(carrot_node.grid_pos, direction_away, carrot_node)
+			var calc_result = calculate_slide_destination(carrot_node.grid_pos, direction_away_int, carrot_node)
 			var final_carrot_pos = calc_result["final_position"]
 			
-			if carrot_node.has_method("scare_and_slide"):
-				# Передаем конечную точку в морковку
+			if carrot_node.has_method("scare_and_slide_animated"):
+				# Передаем конечную точку в морковку для анимированного движения
+				carrot_node.scare_and_slide_animated(final_carrot_pos, self)
+			elif carrot_node.has_method("scare_and_slide"):
+				# Fallback на старый метод, если новый не найден
 				carrot_node.scare_and_slide(final_carrot_pos, self)
 			else:
 				printerr("Ошибка: У узла морковки %s отсутствует метод scare_and_slide!" % carrot_node.name)
@@ -373,13 +387,24 @@ func _is_move_blocked_by_partial_wall(from_pos: Vector2i, to_pos: Vector2i) -> b
 		
 	return false # Движение не заблокировано частичной стеной
 
-# Проверяет, является ли клетка полноценной стеной
+# Проверяет, является ли клетка полноценной стеной или препятствием
 func is_full_wall(grid_pos: Vector2i) -> bool:
-	var tile_data = get_tile_data(grid_pos)
-	if not tile_data:
-		return false
+	# Проверяем все слои TileMap
+	var layers_count = ground_layer.get_layers_count()
+	print("DEBUG: Проверяем позицию ", grid_pos, " на всех ", layers_count, " слоях")
 	
-	return tile_data.get_collision_polygons_count(0) > 0
+	for layer_index in range(layers_count):
+		var tile_data = get_tile_data(grid_pos, layer_index)
+		if tile_data:
+			var collision_count = tile_data.get_collision_polygons_count(0)
+			print("DEBUG: Слой ", layer_index, " в позиции ", grid_pos, " - есть тайл: true, коллизий: ", collision_count)
+			if collision_count > 0:
+				print("DEBUG: Найдено препятствие на слое ", layer_index, " в позиции ", grid_pos)
+				return true
+		else:
+			print("DEBUG: Слой ", layer_index, " в позиции ", grid_pos, " - есть тайл: false")
+	
+	return false
 
 # Проверяет, является ли клетка выходом
 func is_exit(grid_pos: Vector2i) -> bool:
@@ -567,7 +592,10 @@ func eat_carrot(carrot_node: Node) -> bool:
 			for scare_info in scared_by_eating_list:
 				var carrot_to_scare: Carrot = scare_info["carrot"]
 				var final_pos: Vector2i = scare_info["final_pos"]
-				carrot_to_scare.scare_and_slide(final_pos, self)
+				if carrot_to_scare.has_method("scare_and_slide_animated"):
+					carrot_to_scare.scare_and_slide_animated(final_pos, self)
+				else:
+					carrot_to_scare.scare_and_slide(final_pos, self)
 			return true # Сигнализируем, что соседи были напуганы
 		else:
 			return false # Соседи не были напуганы
