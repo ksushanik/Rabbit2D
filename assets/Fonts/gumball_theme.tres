@@ -1,0 +1,8 @@
+[gd_resource type="Theme" load_steps=2 format=3 uid="uid://nqw3smkyqp4b"]
+
+[ext_resource type="FontFile" uid="uid://cru0sewjg6au6" path="res://assets/Fonts/Gumball.ttf" id="1_gumball_font"]
+
+[resource]
+default_font = ExtResource("1_gumball_font")
+default_font_size = 82
+Label/colors/font_color = Color(1, 1, 1, 1)

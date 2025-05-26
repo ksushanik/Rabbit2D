@@ -1,0 +1,107 @@
+[gd_scene load_steps=15 format=3 uid="uid://pause_menu"]
+
+[ext_resource type="Script" path="res://scripts/UI/PauseMenu.gd" id="1_pause_script"]
+[ext_resource type="Theme" uid="uid://bqxvxb8qkw7ys" path="res://assets/Fonts/pixel_theme.tres" id="2_pixel_theme"]
+[ext_resource type="Texture2D" uid="uid://il3ke0grhyan" path="res://assets/Sprites/UI/background.png" id="3_background"]
+[ext_resource type="Theme" path="res://assets/Fonts/gumball_theme.tres" id="4_gumball_theme"]
+[ext_resource type="StyleBox" uid="uid://resume_normal_style" path="res://assets/Styles/button_resume_normal.tres" id="5_resume_normal"]
+[ext_resource type="StyleBox" uid="uid://resume_hover_style" path="res://assets/Styles/button_resume_hover.tres" id="6_resume_hover"]
+[ext_resource type="StyleBox" uid="uid://resume_pressed_style" path="res://assets/Styles/button_resume_pressed.tres" id="7_resume_pressed"]
+[ext_resource type="StyleBox" uid="uid://restart_normal_style" path="res://assets/Styles/button_restart_normal.tres" id="8_restart_normal"]
+[ext_resource type="StyleBox" uid="uid://restart_hover_style" path="res://assets/Styles/button_restart_hover.tres" id="9_restart_hover"]
+[ext_resource type="StyleBox" uid="uid://restart_pressed_style" path="res://assets/Styles/button_restart_pressed.tres" id="10_restart_pressed"]
+[ext_resource type="StyleBox" uid="uid://menu_normal_style" path="res://assets/Styles/button_menu_normal.tres" id="11_menu_normal"]
+[ext_resource type="StyleBox" uid="uid://menu_hover_style" path="res://assets/Styles/button_menu_hover.tres" id="12_menu_hover"]
+[ext_resource type="StyleBox" uid="uid://menu_pressed_style" path="res://assets/Styles/button_menu_pressed.tres" id="13_menu_pressed"]
+[ext_resource type="StyleBox" uid="uid://exit_normal_style" path="res://assets/Styles/button_exit_normal.tres" id="14_exit_normal"]
+[ext_resource type="StyleBox" uid="uid://exit_hover_style" path="res://assets/Styles/button_exit_hover.tres" id="15_exit_hover"]
+[ext_resource type="StyleBox" uid="uid://exit_pressed_style" path="res://assets/Styles/button_exit_pressed.tres" id="16_exit_pressed"]
+
+[node name="PauseMenu" type="CanvasLayer"]
+script = ExtResource("1_pause_script")
+
+[node name="Background" type="TextureRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("3_background")
+expand_mode = 2
+stretch_mode = 0
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(350, 500)
+theme = ExtResource("2_pixel_theme")
+
+[node name="Spacer1" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 80)
+
+[node name="Title" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("4_gumball_theme")
+text = "PAUSE"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+
+[node name="ResumeButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 70)
+size_flags_horizontal = 4
+text = ""
+theme_override_styles/normal = ExtResource("5_resume_normal")
+theme_override_styles/hover = ExtResource("6_resume_hover")
+theme_override_styles/pressed = ExtResource("7_resume_pressed")
+
+[node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="RestartButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 70)
+size_flags_horizontal = 4
+text = ""
+theme_override_styles/normal = ExtResource("8_restart_normal")
+theme_override_styles/hover = ExtResource("9_restart_hover")
+theme_override_styles/pressed = ExtResource("10_restart_pressed")
+
+[node name="Spacer4" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="MenuButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 70)
+size_flags_horizontal = 4
+text = ""
+theme_override_styles/normal = ExtResource("11_menu_normal")
+theme_override_styles/hover = ExtResource("12_menu_hover")
+theme_override_styles/pressed = ExtResource("13_menu_pressed")
+
+[node name="Spacer5" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="ExitButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 70)
+size_flags_horizontal = 4
+text = ""
+theme_override_styles/normal = ExtResource("14_exit_normal")
+theme_override_styles/hover = ExtResource("15_exit_hover")
+theme_override_styles/pressed = ExtResource("16_exit_pressed")
+
+[node name="Spacer6" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3 

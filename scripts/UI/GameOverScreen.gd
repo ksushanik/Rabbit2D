@@ -1,47 +1,42 @@
 extends CanvasLayer
 
-@onready var play_again_button: Button = $CenterContainer/WinPanel/VBoxContainer/PlayAgainButton
-@onready var main_menu_button: Button = $CenterContainer/WinPanel/VBoxContainer/MainMenuButton
-@onready var quit_button: Button = $CenterContainer/WinPanel/VBoxContainer/QuitButton
+@onready var restart_button: Button = $CenterContainer/VBoxContainer/RestartButton
+@onready var menu_button: Button = $CenterContainer/VBoxContainer/MenuButton
+@onready var exit_button: Button = $CenterContainer/VBoxContainer/ExitButton
 
 func _ready() -> void:
 	self.process_mode = Node.PROCESS_MODE_ALWAYS
 	
-	if play_again_button:
-		play_again_button.pressed.connect(_on_play_again_button_pressed)
+	if restart_button:
+		restart_button.pressed.connect(_on_restart_button_pressed)
 	else:
-		printerr("GameOverScreen: Кнопка PlayAgainButton не найдена!")
+		printerr("GameOverScreen: Кнопка RestartButton не найдена!")
 	
-	if main_menu_button:
-		main_menu_button.pressed.connect(_on_main_menu_button_pressed)
+	if menu_button:
+		menu_button.pressed.connect(_on_menu_button_pressed)
 	else:
-		printerr("GameOverScreen: Кнопка MainMenuButton не найдена!")
+		printerr("GameOverScreen: Кнопка MenuButton не найдена!")
 		
-	if quit_button:
-		quit_button.pressed.connect(_on_quit_button_pressed)
+	if exit_button:
+		exit_button.pressed.connect(_on_exit_button_pressed)
 	else:
-		printerr("GameOverScreen: Кнопка QuitButton не найдена!")
+		printerr("GameOverScreen: Кнопка ExitButton не найдена!")
 		
-	if play_again_button:
-		play_again_button.grab_focus()
+	# Устанавливаем фокус с задержкой
+	call_deferred("_set_initial_focus")
 		
 	get_tree().paused = true
 
-func _on_play_again_button_pressed() -> void:
+func _set_initial_focus() -> void:
+	if restart_button:
+		restart_button.grab_focus()
+
+func _on_restart_button_pressed() -> void:
 	get_tree().paused = false
-	
-	var game_manager = get_node("/root/GameManager")
-	if game_manager:
-		if game_manager.has_method("load_level_by_index"):
-			game_manager.load_level_by_index(0)
-		else:
-			printerr("GameOverScreen: Метод load_level_by_index отсутствует в GameManager!")
-	else:
-		printerr("GameOverScreen: Не удалось найти GameManager!")
-		
+	get_tree().reload_current_scene()
 	call_deferred("queue_free")
 
-func _on_main_menu_button_pressed() -> void:
+func _on_menu_button_pressed() -> void:
 	get_tree().paused = false
 	
 	var game_manager = get_node("/root/GameManager")
@@ -52,6 +47,6 @@ func _on_main_menu_button_pressed() -> void:
 		
 	call_deferred("queue_free")
 
-func _on_quit_button_pressed() -> void:
+func _on_exit_button_pressed() -> void:
 	get_tree().paused = false
 	get_tree().quit() 

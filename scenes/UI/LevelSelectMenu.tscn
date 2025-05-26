@@ -1,7 +1,12 @@
-[gd_scene load_steps=2 format=3 uid="uid://level_select_menu"]
+[gd_scene load_steps=7 format=3 uid="uid://level_select_menu"]
 
 [ext_resource type="Script" path="res://scripts/LevelSelectMenu.gd" id="1_level_select"]
 [ext_resource type="Theme" uid="uid://bqxvxb8qkw7ys" path="res://assets/Fonts/pixel_theme.tres" id="2_pixel_theme"]
+[ext_resource type="Texture2D" uid="uid://il3ke0grhyan" path="res://assets/Sprites/UI/background.png" id="3_background"]
+[ext_resource type="Theme" path="res://assets/Fonts/gumball_theme.tres" id="4_gumball_theme"]
+[ext_resource type="StyleBox" uid="uid://menu_normal_style" path="res://assets/Styles/button_menu_normal.tres" id="5_menu_normal"]
+[ext_resource type="StyleBox" uid="uid://menu_hover_style" path="res://assets/Styles/button_menu_hover.tres" id="6_menu_hover"]
+[ext_resource type="StyleBox" uid="uid://menu_pressed_style" path="res://assets/Styles/button_menu_pressed.tres" id="7_menu_pressed"]
 
 [node name="LevelSelectMenu" type="Control"]
 layout_mode = 3
@@ -11,12 +16,14 @@ anchor_bottom = 1.0
 theme = ExtResource("2_pixel_theme")
 script = ExtResource("1_level_select")
 
-[node name="Background" type="ColorRect" parent="."]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-color = Color(0.8, 0.7, 0.6, 1)
+texture = ExtResource("3_background")
+expand_mode = 2
+stretch_mode = 0
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -24,47 +31,41 @@ anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 
-[node name="MenuPanel" type="Panel" parent="CenterContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(600, 700)
+custom_minimum_size = Vector2(500, 600)
 
-[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer/MenuPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
-
-[node name="Title" type="Label" parent="CenterContainer/MenuPanel/VBoxContainer"]
+[node name="Spacer1" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-text = "🎯 ВЫБОР УРОВНЯ 🎯"
-theme_override_font_sizes/font_size = 28
+custom_minimum_size = Vector2(0, 80)
+
+[node name="Title" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("4_gumball_theme")
+text = "LEVELS"
 horizontal_alignment = 1
-vertical_alignment = 1
 
-[node name="Spacer1" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
+[node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 20)
+custom_minimum_size = Vector2(0, 40)
 
-[node name="ScrollContainer" type="ScrollContainer" parent="CenterContainer/MenuPanel/VBoxContainer"]
+[node name="LevelsContainer" type="CenterContainer" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 size_flags_vertical = 3
 
-[node name="LevelsGrid" type="GridContainer" parent="CenterContainer/MenuPanel/VBoxContainer/ScrollContainer"]
+[node name="LevelsGrid" type="GridContainer" parent="CenterContainer/VBoxContainer/LevelsContainer"]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
 columns = 4
 
-[node name="Spacer2" type="Control" parent="CenterContainer/MenuPanel/VBoxContainer"]
+[node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
 
-[node name="BackButton" type="Button" parent="CenterContainer/MenuPanel/VBoxContainer"]
+[node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 50)
-text = "⬅️ Назад в главное меню"
-theme_override_font_sizes/font_size = 16 
+custom_minimum_size = Vector2(280, 70)
+size_flags_horizontal = 4
+text = ""
+theme_override_styles/normal = ExtResource("5_menu_normal")
+theme_override_styles/hover = ExtResource("6_menu_hover")
+theme_override_styles/pressed = ExtResource("7_menu_pressed") 

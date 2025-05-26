@@ -22,6 +22,7 @@ var last_move_calculation_result: Dictionary = {}
 var active_foxes: Array[Fox] = []
 
 var _level_complete_player: AudioStreamPlayer = null
+var _pause_menu_instance: CanvasLayer = null
 
 func _ready() -> void:
 	if not ground_layer:
@@ -132,6 +133,11 @@ func _setup_level_complete_sound() -> void:
 			printerr("Level.gd: Не удалось загрузить звук завершения уровня: ", level_complete_sound_path)
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
+		_show_pause_menu()
+		get_tree().root.set_input_as_handled()
+		return
+		
 	if current_state != State.PLAYER_TURN:
 		return
 
@@ -564,19 +570,7 @@ func _on_pit_fall_timer_finished(timer: Timer) -> void:
 	_show_pit_fall_dialog()
 
 func _show_pit_fall_dialog() -> void:
-	var dialog = AcceptDialog.new()
-	dialog.title = "Кролик упал в яму!"
-	dialog.dialog_text = "Кролик провалился в яму!\n\nЧто делать?"
-	
-	dialog.add_button("Перезапустить уровень", false, "restart")
-	dialog.add_button("Главное меню", false, "menu")
-	dialog.add_button("Выйти из игры", false, "quit")
-	
-	dialog.custom_action.connect(_on_pit_dialog_action)
-	dialog.confirmed.connect(_on_pit_dialog_restart)
-	
-	add_child(dialog)
-	dialog.popup_centered()
+	_show_game_over_screen()
 
 func _wait_for_fox_attack_animations(fox: Fox) -> void:
 	var timer = Timer.new()
@@ -592,41 +586,20 @@ func _on_fox_attack_timer_finished(timer: Timer) -> void:
 	_show_fox_attack_dialog()
 
 func _show_fox_attack_dialog() -> void:
-	var dialog = AcceptDialog.new()
-	dialog.title = "Лиса поймала кролика!"
-	dialog.dialog_text = "Кролик остановился в опасной зоне и лиса его съела!\n\nЧто делать?"
-	
-	dialog.add_button("Перезапустить уровень", false, "restart")
-	dialog.add_button("Главное меню", false, "menu")
-	dialog.add_button("Выйти из игры", false, "quit")
-	
-	dialog.custom_action.connect(_on_fox_dialog_action)
-	dialog.confirmed.connect(_on_fox_dialog_restart)
-	
-	add_child(dialog)
-	dialog.popup_centered()
+	_show_game_over_screen()
 
-func _on_pit_dialog_action(action: String) -> void:
-	if action == "restart":
-		restart_level()
-	elif action == "menu":
-		_return_to_main_menu()
-	elif action == "quit":
-		get_tree().quit()
+func _show_game_over_screen() -> void:
+	var game_over_scene = preload("res://scenes/UI/GameOverScreen.tscn")
+	var game_over_instance = game_over_scene.instantiate()
+	get_tree().current_scene.add_child(game_over_instance)
 
-func _on_pit_dialog_restart() -> void:
-	restart_level()
-
-func _on_fox_dialog_action(action: String) -> void:
-	if action == "restart":
-		restart_level()
-	elif action == "menu":
-		_return_to_main_menu()
-	elif action == "quit":
-		get_tree().quit()
-
-func _on_fox_dialog_restart() -> void:
-	restart_level()
+func _show_pause_menu() -> void:
+	if _pause_menu_instance != null and is_instance_valid(_pause_menu_instance):
+		return
+		
+	var pause_scene = preload("res://scenes/UI/PauseMenu.tscn")
+	_pause_menu_instance = pause_scene.instantiate()
+	get_tree().current_scene.add_child(_pause_menu_instance)
 
 func _return_to_main_menu() -> void:
 	var game_manager = get_node("/root/GameManager")

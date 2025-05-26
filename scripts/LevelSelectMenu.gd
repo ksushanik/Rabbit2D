@@ -2,8 +2,8 @@ extends Control
 
 ## Меню выбора уровней
 
-@onready var levels_grid: GridContainer = $CenterContainer/MenuPanel/VBoxContainer/ScrollContainer/LevelsGrid
-@onready var back_button: Button = $CenterContainer/MenuPanel/VBoxContainer/BackButton
+@onready var levels_grid: GridContainer = $CenterContainer/VBoxContainer/LevelsContainer/LevelsGrid
+@onready var back_button: Button = $CenterContainer/VBoxContainer/BackButton
 
 var level_paths: Array[String] = []
 
@@ -33,6 +33,9 @@ func _ready() -> void:
 		back_button.pressed.connect(_on_back_button_pressed)
 	else:
 		printerr("LevelSelectMenu: Кнопка 'Назад' не найдена!")
+	
+	# Устанавливаем фокус на первую кнопку уровня после создания
+	call_deferred("_set_initial_focus")
 
 func _create_level_buttons() -> void:
 	for child in levels_grid.get_children():
@@ -41,30 +44,41 @@ func _create_level_buttons() -> void:
 	for i in range(level_paths.size()):
 		var level_number = i + 1
 		var button = Button.new()
-		button.text = str(level_number)
+		button.text = ""
 		button.custom_minimum_size = Vector2(80, 80)
-		button.add_theme_font_size_override("font_size", 20)
+		
+		# Создаем стили для кнопки уровня
+		var normal_style = _create_level_button_style(level_number, "normal")
+		var hover_style = _create_level_button_style(level_number, "hover") 
+		var pressed_style = _create_level_button_style(level_number, "pressed")
+		
+		if normal_style:
+			button.add_theme_stylebox_override("normal", normal_style)
+		if hover_style:
+			button.add_theme_stylebox_override("hover", hover_style)
+		if pressed_style:
+			button.add_theme_stylebox_override("pressed", pressed_style)
 		
 		if ResourceLoader.exists(level_paths[i]):
 			button.pressed.connect(_on_level_button_pressed.bind(i))
 		else:
 			button.disabled = true
-			button.text = str(level_number) + "\n❌"
-			button.add_theme_font_size_override("font_size", 14)
 		
 		levels_grid.add_child(button)
-	
-	_add_test_level_button("Тест лис", "res://scenes/test_fox_level.tscn")
-	_add_test_level_button("Тест атаки", "res://scenes/test_fox_attack.tscn")
 
-func _add_test_level_button(button_text: String, level_path: String) -> void:
-	if ResourceLoader.exists(level_path):
-		var button = Button.new()
-		button.text = button_text
-		button.custom_minimum_size = Vector2(80, 80)
-		button.add_theme_font_size_override("font_size", 12)
-		button.pressed.connect(_on_test_level_button_pressed.bind(level_path))
-		levels_grid.add_child(button)
+func _create_level_button_style(level_number: int, state: String) -> StyleBoxTexture:
+	var texture_path = "res://assets/Sprites/UI/buttons/level" + str(level_number) + "_" + state + ".png"
+	
+	if ResourceLoader.exists(texture_path):
+		var texture = load(texture_path) as Texture2D
+		if texture:
+			var style = StyleBoxTexture.new()
+			style.texture = texture
+			return style
+	
+	return null
+
+
 
 func _on_level_button_pressed(level_index: int) -> void:
 	var game_manager = get_node("/root/GameManager")
@@ -76,8 +90,14 @@ func _on_level_button_pressed(level_index: int) -> void:
 	else:
 		printerr("Неверный индекс уровня: ", level_index)
 
-func _on_test_level_button_pressed(level_path: String) -> void:
-	get_tree().change_scene_to_file(level_path)
+
+
+func _set_initial_focus() -> void:
+	# Устанавливаем фокус на первую доступную кнопку уровня
+	if levels_grid.get_child_count() > 0:
+		var first_button = levels_grid.get_child(0) as Button
+		if first_button and not first_button.disabled:
+			first_button.grab_focus()
 
 func _on_back_button_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn") 

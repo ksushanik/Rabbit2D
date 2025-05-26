@@ -1,0 +1,6 @@
+[gd_resource type="StyleBoxTexture" load_steps=2 format=3 uid="uid://menu_hover_style"]
+
+[ext_resource type="Texture2D" uid="uid://c07gs0ohxvp4d" path="res://assets/Sprites/UI/buttons/button_menu_hover.png" id="1_button_texture"]
+
+[resource]
+texture = ExtResource("1_button_texture") 
