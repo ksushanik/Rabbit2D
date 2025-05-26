@@ -4,6 +4,7 @@ extends Control
 
 @onready var start_game_button: Button = $CenterContainer/VBoxContainer/StartGameButton
 @onready var level_select_button: Button = $CenterContainer/VBoxContainer/LevelSelectButton
+@onready var settings_button: Button = $CenterContainer/VBoxContainer/SettingsButton
 @onready var quit_button: Button = $CenterContainer/VBoxContainer/QuitButton
 
 func _ready() -> void:
@@ -11,6 +12,8 @@ func _ready() -> void:
 		printerr("MainMenu: Кнопка StartGameButton не найдена!")
 	if not level_select_button:
 		printerr("MainMenu: Кнопка LevelSelectButton не найдена!")
+	if not settings_button:
+		printerr("MainMenu: Кнопка SettingsButton не найдена!")
 	if not quit_button:
 		printerr("MainMenu: Кнопка QuitButton не найдена!")
 	
@@ -20,6 +23,8 @@ func _ready() -> void:
 		call_deferred("_set_initial_focus")
 	if level_select_button:
 		level_select_button.pressed.connect(_on_level_select_pressed)
+	if settings_button:
+		settings_button.pressed.connect(_on_settings_pressed)
 	if quit_button:
 		quit_button.pressed.connect(_on_quit_pressed)
 
@@ -31,7 +36,16 @@ func _on_start_game_pressed() -> void:
 		get_tree().change_scene_to_file("res://scenes/level_1.tscn")
 
 func _on_level_select_pressed() -> void:
+	var game_manager = get_node("/root/GameManager")
+	if game_manager and game_manager.has_method("hide_hud"):
+		game_manager.hide_hud()
 	get_tree().change_scene_to_file("res://scenes/UI/LevelSelectMenu.tscn")
+
+func _on_settings_pressed() -> void:
+	var game_manager = get_node("/root/GameManager")
+	if game_manager and game_manager.has_method("hide_hud"):
+		game_manager.hide_hud()
+	get_tree().change_scene_to_file("res://scenes/UI/SettingsMenu.tscn")
 
 func _set_initial_focus() -> void:
 	if start_game_button:

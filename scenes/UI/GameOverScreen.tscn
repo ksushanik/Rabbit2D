@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://djf7gkxkmywbn"]
+[gd_scene load_steps=10 format=3 uid="uid://djf7gkxkmywbn"]
 
 [ext_resource type="Script" path="res://scripts/UI/GameOverScreen.gd" id="1_aqf34"]
 [ext_resource type="Theme" uid="uid://bqxvxb8qkw7ys" path="res://assets/Fonts/pixel_theme.tres" id="2_pixel_theme"]
@@ -10,9 +10,6 @@
 [ext_resource type="StyleBox" uid="uid://menu_normal_style" path="res://assets/Styles/button_menu_normal.tres" id="8_menu_normal"]
 [ext_resource type="StyleBox" uid="uid://menu_hover_style" path="res://assets/Styles/button_menu_hover.tres" id="9_menu_hover"]
 [ext_resource type="StyleBox" uid="uid://menu_pressed_style" path="res://assets/Styles/button_menu_pressed.tres" id="10_menu_pressed"]
-[ext_resource type="StyleBox" uid="uid://exit_normal_style" path="res://assets/Styles/button_exit_normal.tres" id="11_exit_normal"]
-[ext_resource type="StyleBox" uid="uid://exit_hover_style" path="res://assets/Styles/button_exit_hover.tres" id="12_exit_hover"]
-[ext_resource type="StyleBox" uid="uid://exit_pressed_style" path="res://assets/Styles/button_exit_pressed.tres" id="13_exit_pressed"]
 
 [node name="GameOverScreen" type="CanvasLayer"]
 script = ExtResource("1_aqf34")
@@ -49,6 +46,17 @@ horizontal_alignment = 1
 
 [node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="Message" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("2_pixel_theme")
+text = "Congratulations! You completed all levels!"
+horizontal_alignment = 1
+visible = false
+
+[node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
 custom_minimum_size = Vector2(0, 40)
 
 [node name="RestartButton" type="Button" parent="CenterContainer/VBoxContainer"]
@@ -60,7 +68,7 @@ theme_override_styles/normal = ExtResource("5_restart_normal")
 theme_override_styles/hover = ExtResource("6_restart_hover")
 theme_override_styles/pressed = ExtResource("7_restart_pressed")
 
-[node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer"]
+[node name="Spacer4" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2
 custom_minimum_size = Vector2(0, 20)
 
@@ -72,19 +80,6 @@ text = ""
 theme_override_styles/normal = ExtResource("8_menu_normal")
 theme_override_styles/hover = ExtResource("9_menu_hover")
 theme_override_styles/pressed = ExtResource("10_menu_pressed")
-
-[node name="Spacer4" type="Control" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(0, 20)
-
-[node name="ExitButton" type="Button" parent="CenterContainer/VBoxContainer"]
-layout_mode = 2
-custom_minimum_size = Vector2(280, 70)
-size_flags_horizontal = 4
-text = ""
-theme_override_styles/normal = ExtResource("11_exit_normal")
-theme_override_styles/hover = ExtResource("12_exit_hover")
-theme_override_styles/pressed = ExtResource("13_exit_pressed")
 
 [node name="Spacer5" type="Control" parent="CenterContainer/VBoxContainer"]
 layout_mode = 2

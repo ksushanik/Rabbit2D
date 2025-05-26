@@ -13,12 +13,18 @@ var tile_size: int = 64
 @export var move_duration: float = 0.3
 # Длительность анимации столкновения
 @export var collision_duration: float = 0.3
+# Время бездействия, после которого кролик становится несчастным (в секундах)
+@export var idle_timeout: float = 10.0
 
 # Текущая позиция в сетке
 var grid_pos: Vector2i = Vector2i.ZERO
 var is_moving: bool = false
 # Флаг для отслеживания столкновения
 var is_colliding: bool = false
+# Флаг для отслеживания состояния несчастного кролика
+var is_sad: bool = false
+# Таймер бездействия
+var idle_timer: float = 0.0
 
 @onready var sprite: AnimatedSprite2D = $Sprite2D
 
@@ -45,6 +51,9 @@ var _collision_sound_player: AudioStreamPlayer = null
 func _ready() -> void:
 	_setup_sound_players()
 	_setup_sprite()
+	
+	# Включаем обработку процесса для таймера бездействия
+	set_process(true)
 
 func _setup_sound_players() -> void:
 	if not move_sound_path.is_empty():
@@ -75,7 +84,8 @@ func _setup_sprite() -> void:
 		
 		var required_anims = ["idle_down", "idle_up", "idle_left", "idle_right", 
 			"move_down", "move_up", "move_left", "move_right",
-			"collision_down", "collision_up", "collision_left", "collision_right"]
+			"collision_down", "collision_up", "collision_left", "collision_right",
+			"unhappy_down", "unhappy_up", "unhappy_left", "unhappy_right"]
 		var missing_anims = []
 		for anim in required_anims:
 			if not sprite.sprite_frames.has_animation(anim):
@@ -108,6 +118,11 @@ func show_rabbit() -> void:
 func animate_move(target_world_position: Vector2, duration: float, will_collide: bool = false) -> void:
 	if is_moving:
 		return
+
+	# Сбрасываем таймер бездействия и состояние несчастного кролика
+	idle_timer = 0.0
+	if is_sad:
+		_reset_sad_state()
 
 	var move_direction = (target_world_position - position).normalized()
 	var direction_name = "down"
@@ -175,3 +190,61 @@ func _on_animation_finished() -> void:
 		play_animation(idle_anim)
 		is_colliding = false
 		emit_signal("move_finished")
+	
+	# Если анимация unhappy_ закончилась, продолжаем показывать её
+	elif sprite.animation.begins_with("unhappy_") and is_sad:
+		sprite.play(sprite.animation)  # Перезапускаем ту же анимацию
+
+# Обрабатываем таймер бездействия
+func _process(delta: float) -> void:
+	# Если кролик движется или сталкивается, сбрасываем таймер
+	if is_moving or is_colliding:
+		idle_timer = 0.0
+		if is_sad:
+			_reset_sad_state()
+		return
+	
+	# Увеличиваем таймер бездействия
+	idle_timer += delta
+	
+	# Если прошло достаточно времени и кролик еще не несчастный
+	if idle_timer >= idle_timeout and not is_sad:
+		_set_sad_state()
+
+# Устанавливает состояние "несчастный кролик"
+func _set_sad_state() -> void:
+	is_sad = true
+	
+	# Определяем текущее направление для анимации
+	var dir_name = DIRECTION_TO_ANIMATION.get(current_direction, "down")
+	
+	# Проверяем, есть ли специальная анимация для несчастного кролика
+	var unhappy_anim = "unhappy_" + dir_name
+	if sprite and sprite.sprite_frames.has_animation(unhappy_anim):
+		sprite.play(unhappy_anim)
+	else:
+		# Если специальной анимации нет, используем обычную idle с измененным цветом
+		var idle_anim = "idle_" + dir_name
+		sprite.play(idle_anim)
+		sprite.modulate = Color(0.7, 0.7, 1.0)  # Голубоватый оттенок для грусти
+	
+	print("Кролик стал несчастным после ", idle_timeout, " секунд бездействия")
+
+# Сбрасывает состояние "несчастный кролик"
+func _reset_sad_state() -> void:
+	if is_sad:
+		is_sad = false
+		sprite.modulate = Color.WHITE  # Возвращаем обычный цвет
+		
+		# Возвращаемся к обычной анимации
+		var dir_name = DIRECTION_TO_ANIMATION.get(current_direction, "down")
+		var idle_anim = "idle_" + dir_name
+		play_animation(idle_anim)
+		
+		print("Кролик снова в обычном состоянии")
+
+# Сбрасывает таймер бездействия (вызывается из Level.gd при вводе пользователя)
+func reset_idle_timer() -> void:
+	idle_timer = 0.0
+	if is_sad:
+		_reset_sad_state()

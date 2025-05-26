@@ -78,19 +78,18 @@ func _create_level_button_style(level_number: int, state: String) -> StyleBoxTex
 	
 	return null
 
-
-
 func _on_level_button_pressed(level_index: int) -> void:
+	print("LevelSelectMenu: Нажата кнопка уровня ", level_index + 1)
 	var game_manager = get_node("/root/GameManager")
-	if game_manager and game_manager.has_method("set_current_level"):
-		game_manager.set_current_level(level_index)
-	
-	if level_index < level_paths.size():
-		get_tree().change_scene_to_file(level_paths[level_index])
+	if game_manager and game_manager.has_method("load_specific_level"):
+		game_manager.load_specific_level(level_index)
 	else:
-		printerr("Неверный индекс уровня: ", level_index)
-
-
+		printerr("LevelSelectMenu: GameManager не найден или не имеет метода load_specific_level")
+		# Fallback на старый способ
+		if level_index < level_paths.size():
+			get_tree().change_scene_to_file(level_paths[level_index])
+		else:
+			printerr("Неверный индекс уровня: ", level_index)
 
 func _set_initial_focus() -> void:
 	# Устанавливаем фокус на первую доступную кнопку уровня
@@ -100,4 +99,7 @@ func _set_initial_focus() -> void:
 			first_button.grab_focus()
 
 func _on_back_button_pressed() -> void:
+	var game_manager = get_node("/root/GameManager")
+	if game_manager and game_manager.has_method("hide_hud"):
+		game_manager.hide_hud()
 	get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn") 

@@ -8,6 +8,9 @@ extends Node2D
 @export var hud_scene: PackedScene = null
 @export var level_complete_sound_path: String = ""
 
+# Путь к звуку проигрыша (не экспортируется, так как одинаковый для всех уровней)
+var game_over_sound_path: String = "res://assets/Sounds/gameover.mp3"
+
 signal carrots_updated(count: int)
 
 enum State { PLAYER_TURN, PROCESSING_MOVE }
@@ -22,7 +25,10 @@ var last_move_calculation_result: Dictionary = {}
 var active_foxes: Array[Fox] = []
 
 var _level_complete_player: AudioStreamPlayer = null
+var _game_over_player: AudioStreamPlayer = null
 var _pause_menu_instance: CanvasLayer = null
+var _waiting_for_game_over_sound: bool = false
+var _game_over_type: String = ""  # "pit" или "fox"
 
 func _ready() -> void:
 	if not ground_layer:
@@ -38,6 +44,7 @@ func _ready() -> void:
 	_initialize_carrots()
 	_initialize_foxes()
 	_setup_level_complete_sound()
+	_setup_game_over_sound()
 	
 	current_state = State.PLAYER_TURN
 
@@ -132,14 +139,43 @@ func _setup_level_complete_sound() -> void:
 		else:
 			printerr("Level.gd: Не удалось загрузить звук завершения уровня: ", level_complete_sound_path)
 
+func _setup_game_over_sound() -> void:
+	if not game_over_sound_path.is_empty():
+		var sound = load(game_over_sound_path)
+		if sound is AudioStream:
+			_game_over_player = AudioStreamPlayer.new()
+			_game_over_player.stream = sound
+			_game_over_player.name = "GameOverSoundPlayer"
+			add_child(_game_over_player)
+			_game_over_player.finished.connect(_on_game_over_sound_finished)
+		else:
+			printerr("Level.gd: Не удалось загрузить звук проигрыша: ", game_over_sound_path)
+
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel") or event.is_action_pressed("pause"):
+	# Проверяем пользовательскую клавишу паузы
+	if event is InputEventKey and event.pressed:
+		var game_manager = get_node("/root/GameManager")
+		var pause_key = KEY_ESCAPE
+		if game_manager and game_manager.game_settings.has("pause_key"):
+			pause_key = game_manager.game_settings["pause_key"]
+		
+		if event.keycode == pause_key:
+			_show_pause_menu()
+			get_tree().root.set_input_as_handled()
+			return
+	
+	# Старая проверка на ui_cancel как fallback
+	if event.is_action_pressed("ui_cancel"):
 		_show_pause_menu()
 		get_tree().root.set_input_as_handled()
 		return
 		
 	if current_state != State.PLAYER_TURN:
 		return
+
+	# Сбрасываем таймер бездействия кролика при любом вводе пользователя
+	if rabbit and rabbit.has_method("reset_idle_timer"):
+		rabbit.reset_idle_timer()
 
 	var direction = Vector2i.ZERO
 	if event.is_action_pressed("move_right"): 
@@ -182,6 +218,12 @@ func _on_rabbit_move_finished() -> void:
 	rabbit.grid_pos = final_grid_pos
 	
 	if last_move_calculation_result.get("hit_pit", false):
+		# Воспроизводим звук game over сразу при падении в яму
+		if is_instance_valid(_game_over_player) and not _game_over_player.playing:
+			_waiting_for_game_over_sound = true
+			_game_over_type = "pit"
+			_game_over_player.play()
+			
 		var dir_name = "down"
 		if last_rabbit_direction == Vector2i.RIGHT:
 			dir_name = "right"
@@ -198,6 +240,12 @@ func _on_rabbit_move_finished() -> void:
 	
 	for fox in active_foxes:
 		if fox.is_rabbit_in_danger_zone(final_grid_pos):
+			# Воспроизводим звук game over сразу при атаке лисы
+			if is_instance_valid(_game_over_player) and not _game_over_player.playing:
+				_waiting_for_game_over_sound = true
+				_game_over_type = "fox"
+				_game_over_player.play()
+				
 			fox.play_attack_animation()
 			
 			if rabbit and rabbit.has_method("hide_rabbit"):
@@ -567,28 +615,16 @@ func _wait_for_pit_fall_animation() -> void:
 
 func _on_pit_fall_timer_finished(timer: Timer) -> void:
 	timer.queue_free()
-	_show_pit_fall_dialog()
-
-func _show_pit_fall_dialog() -> void:
-	_show_game_over_screen()
-
-func _wait_for_fox_attack_animations(fox: Fox) -> void:
-	var timer = Timer.new()
-	timer.wait_time = 1.5
-	timer.one_shot = true
-	add_child(timer)
-	
-	timer.timeout.connect(_on_fox_attack_timer_finished.bind(timer))
-	timer.start()
-
-func _on_fox_attack_timer_finished(timer: Timer) -> void:
-	timer.queue_free()
-	_show_fox_attack_dialog()
-
-func _show_fox_attack_dialog() -> void:
-	_show_game_over_screen()
+	# Показываем меню только если звук уже закончился
+	if not _waiting_for_game_over_sound:
+		_show_game_over_screen()
 
 func _show_game_over_screen() -> void:
+	# Скрываем HUD перед показом экрана проигрыша
+	var game_manager = get_node("/root/GameManager")
+	if game_manager and game_manager.has_method("hide_hud"):
+		game_manager.hide_hud()
+	
 	var game_over_scene = preload("res://scenes/UI/GameOverScreen.tscn")
 	var game_over_instance = game_over_scene.instantiate()
 	get_tree().current_scene.add_child(game_over_instance)
@@ -606,4 +642,26 @@ func _return_to_main_menu() -> void:
 	if game_manager and game_manager.has_method("show_main_menu"):
 		game_manager.show_main_menu()
 	else:
+		if game_manager and game_manager.has_method("hide_hud"):
+			game_manager.hide_hud()
 		get_tree().change_scene_to_file("res://scenes/UI/MainMenu.tscn")
+
+func _on_game_over_sound_finished() -> void:
+	_waiting_for_game_over_sound = false
+	# Показываем меню game over только после окончания звука
+	_show_game_over_screen()
+
+func _wait_for_fox_attack_animations(fox: Fox) -> void:
+	var timer = Timer.new()
+	timer.wait_time = 1.5
+	timer.one_shot = true
+	add_child(timer)
+	
+	timer.timeout.connect(_on_fox_attack_timer_finished.bind(timer))
+	timer.start()
+
+func _on_fox_attack_timer_finished(timer: Timer) -> void:
+	timer.queue_free()
+	# Показываем меню только если звук уже закончился
+	if not _waiting_for_game_over_sound:
+		_show_game_over_screen()
