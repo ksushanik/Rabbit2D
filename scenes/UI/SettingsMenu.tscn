@@ -1,0 +1,245 @@
+[gd_scene load_steps=14 format=3 uid="uid://settings_menu"]
+
+[ext_resource type="Script" path="res://scripts/SettingsMenu.gd" id="1_settings_script"]
+[ext_resource type="Theme" uid="uid://bqxvxb8qkw7ys" path="res://assets/Fonts/pixel_theme.tres" id="2_pixel_theme"]
+[ext_resource type="Texture2D" uid="uid://il3ke0grhyan" path="res://assets/Sprites/UI/background.png" id="3_background"]
+[ext_resource type="Theme" uid="uid://nqw3smkyqp4b" path="res://assets/Fonts/gumball_theme.tres" id="4_gumball_theme"]
+[ext_resource type="FontFile" uid="uid://bvr41cihkmyag" path="res://assets/Fonts/minecraft_0.ttf" id="5_minecraft_font"]
+[ext_resource type="StyleBox" uid="uid://menu_normal_style" path="res://assets/Styles/button_menu_normal.tres" id="6_menu_normal"]
+[ext_resource type="StyleBox" uid="uid://menu_hover_style" path="res://assets/Styles/button_menu_hover.tres" id="7_menu_hover"]
+[ext_resource type="StyleBox" uid="uid://menu_pressed_style" path="res://assets/Styles/button_menu_pressed.tres" id="8_menu_pressed"]
+
+[sub_resource type="Theme" id="minecraft_theme"]
+default_font = ExtResource("5_minecraft_font")
+default_font_size = 20
+
+[sub_resource type="StyleBoxFlat" id="text_background"]
+bg_color = Color(0, 0, 0, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="section_background"]
+bg_color = Color(0.2, 0.2, 0.2, 0.7)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="slider_background"]
+bg_color = Color(0.8, 0.8, 0.8, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="slider_grabber"]
+bg_color = Color(1, 1, 1, 1)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[node name="SettingsMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme = ExtResource("2_pixel_theme")
+script = ExtResource("1_settings_script")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("3_background")
+expand_mode = 2
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="VBoxContainer" type="VBoxContainer" parent="CenterContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(650, 750)
+
+[node name="Spacer1" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 50)
+
+[node name="Title" type="Label" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+theme = ExtResource("4_gumball_theme")
+text = "SETTINGS"
+horizontal_alignment = 1
+
+[node name="Spacer2" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+
+[node name="ControlsSection" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="ControlsBackground" type="Panel" parent="CenterContainer/VBoxContainer/ControlsSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 150)
+theme_override_styles/panel = SubResource("section_background")
+
+[node name="ControlsContent" type="VBoxContainer" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = -20.0
+offset_bottom = -15.0
+
+[node name="ControlsTitle" type="Label" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent"]
+layout_mode = 2
+theme = SubResource("minecraft_theme")
+text = "CONTROLS"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="PauseContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent"]
+layout_mode = 2
+
+[node name="PauseLabel" type="Label" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent/PauseContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("minecraft_theme")
+text = "Pause Menu:"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="PauseButton" type="Button" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent/PauseContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 40)
+theme = SubResource("minecraft_theme")
+text = "Esc"
+theme_override_styles/normal = SubResource("text_background")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="Spacer1" type="Control" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 10)
+
+[node name="RestartContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent"]
+layout_mode = 2
+
+[node name="RestartLabel" type="Label" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent/RestartContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("minecraft_theme")
+text = "Restart Level:"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="RestartButton" type="Button" parent="CenterContainer/VBoxContainer/ControlsSection/ControlsBackground/ControlsContent/RestartContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(140, 40)
+theme = SubResource("minecraft_theme")
+text = "R"
+theme_override_styles/normal = SubResource("text_background")
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="Spacer3" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+
+[node name="AudioSection" type="VBoxContainer" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+
+[node name="AudioBackground" type="Panel" parent="CenterContainer/VBoxContainer/AudioSection"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 160)
+theme_override_styles/panel = SubResource("section_background")
+
+[node name="AudioContent" type="VBoxContainer" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 15.0
+offset_right = -20.0
+offset_bottom = -15.0
+
+[node name="AudioTitle" type="Label" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent"]
+layout_mode = 2
+theme = SubResource("minecraft_theme")
+text = "AUDIO"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="Spacer" type="Control" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="SoundToggleContainer" type="HBoxContainer" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent"]
+layout_mode = 2
+
+[node name="SoundToggleLabel" type="Label" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent/SoundToggleContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme = SubResource("minecraft_theme")
+text = "Enable Sound:"
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="SoundToggleButton" type="CheckBox" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent/SoundToggleContainer"]
+layout_mode = 2
+theme = SubResource("minecraft_theme")
+button_pressed = true
+
+[node name="Spacer1" type="Control" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 20)
+
+[node name="VolumeContainer" type="VBoxContainer" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent"]
+layout_mode = 2
+
+[node name="VolumeLabel" type="Label" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent/VolumeContainer"]
+layout_mode = 2
+theme = SubResource("minecraft_theme")
+text = "Volume: 100%"
+horizontal_alignment = 1
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+
+[node name="SliderSpacer" type="Control" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent/VolumeContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 10)
+
+[node name="VolumeSlider" type="HSlider" parent="CenterContainer/VBoxContainer/AudioSection/AudioBackground/AudioContent/VolumeContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+min_value = 0.0
+max_value = 1.0
+step = 0.01
+value = 1.0
+theme_override_styles/slider = SubResource("slider_background")
+theme_override_styles/grabber_area = SubResource("slider_background")
+theme_override_styles/grabber = SubResource("slider_grabber")
+
+[node name="Spacer4" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+
+[node name="BackButton" type="Button" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(280, 70)
+size_flags_horizontal = 4
+text = ""
+theme_override_styles/normal = ExtResource("6_menu_normal")
+theme_override_styles/hover = ExtResource("7_menu_hover")
+theme_override_styles/pressed = ExtResource("8_menu_pressed")
+
+[node name="Spacer5" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+size_flags_vertical = 3 

@@ -30,9 +30,13 @@ var is_moving: bool = false
 @export var move_sound_path: String = "" # <-- ДОБАВЛЕНО: Путь к звуку движения
 @export var eat_sound_path: String = "" # <-- ДОБАВЛЕНО: Путь к звуку поедания
 
+# Путь к звуку мышки (не экспортируется, так как одинаковый для всех морковок)
+var mouse_sound_path: String = "res://assets/Sounds/mouse.mp3"
+
 # --- Переменные ---
 var _move_sound_player: AudioStreamPlayer = null # <-- ДОБАВЛЕНО
 var _eat_sound_player: AudioStreamPlayer = null # <-- ДОБАВЛЕНО
+var _mouse_sound_player: AudioStreamPlayer = null # <-- ДОБАВЛЕНО
 
 
 # Инициализация объекта из Level.gd
@@ -152,6 +156,10 @@ func scare_and_slide_animated(final_grid_pos: Vector2i, level: Node) -> void:
 	if final_grid_pos != grid_pos:
 		print("Морковка %s начинает анимированное скольжение из %s в %s" % [name, grid_pos, final_grid_pos])
 		
+		# Воспроизводим звук мышки сразу при начале анимации
+		if is_instance_valid(_mouse_sound_player) and not _mouse_sound_player.playing:
+			_mouse_sound_player.play()
+		
 		# Воспроизводим звук движения
 		if is_instance_valid(_move_sound_player) and not _move_sound_player.playing:
 			_move_sound_player.play()
@@ -234,3 +242,15 @@ func _setup_sound_players() -> void:
 			add_child(_eat_sound_player)
 		else:
 			printerr("Carrot.gd: Не удалось загрузить звук поедания: ", eat_sound_path)
+	
+	# Инициализируем звук мышки (всегда, так как путь жестко задан)
+	if not mouse_sound_path.is_empty():
+		var sound = load(mouse_sound_path)
+		if sound is AudioStream:
+			_mouse_sound_player = AudioStreamPlayer.new()
+			_mouse_sound_player.stream = sound
+			_mouse_sound_player.name = "MouseSoundPlayer"
+			_mouse_sound_player.volume_db = -6.0
+			add_child(_mouse_sound_player)
+		else:
+			printerr("Carrot.gd: Не удалось загрузить звук мышки: ", mouse_sound_path)

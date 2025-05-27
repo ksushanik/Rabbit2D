@@ -68,4 +68,8 @@ size_flags_horizontal = 4
 text = ""
 theme_override_styles/normal = ExtResource("5_menu_normal")
 theme_override_styles/hover = ExtResource("6_menu_hover")
-theme_override_styles/pressed = ExtResource("7_menu_pressed") 
+theme_override_styles/pressed = ExtResource("7_menu_pressed")
+
+[node name="Spacer4" type="Control" parent="CenterContainer/VBoxContainer"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60) 
